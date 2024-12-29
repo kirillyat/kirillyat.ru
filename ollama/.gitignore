@@ -1,0 +1,4 @@
+*
+!Dockerfile
+!wait_for_ollama.sh
+!.gitignore
