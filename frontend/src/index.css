@@ -1,0 +1,14 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Helvetica, sans-serif;
+  background-image: linear-gradient(to bottom right, #0c2ef3, #001c4b);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}

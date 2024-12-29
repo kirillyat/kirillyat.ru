@@ -1,0 +1,26 @@
+.Navbar {
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
+  width: 30%;
+  border-radius: 60px;
+  height: 100px;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: aliceblue;
+  box-shadow: 10px 20px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.KiriLLM {
+  font-weight: bold;
+  font-size: 30px;
+  display: flex;
+  background: linear-gradient(to right, #ff0606, #0c2ef3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
