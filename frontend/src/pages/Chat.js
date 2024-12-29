@@ -2,7 +2,8 @@ import '../styles/Chat.css';
 import Navbar from '../components/Navbar';
 import { useState } from 'react';
 import React from 'react';
-import apiConfig from '../api';
+import ReactMarkdown from 'react-markdown';
+
 function ChatPage() {
 
   const [messages, setMessages] = useState([
@@ -96,7 +97,7 @@ function Message({ msg }) {
     <div className="Message">
       <p><strong>You:</strong> {msg.user_text}</p>
       <hr />
-      <p><strong>AI:</strong> {msg.ai_text}</p>
+      <p><strong>AI:</strong> <ReactMarkdown>{msg.ai_text}</ReactMarkdown></p>
     </div>
   );
 }
