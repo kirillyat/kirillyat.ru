@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import { useState } from 'react';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import Cookies from 'js-cookie';
 
 function ChatPage() {
 
@@ -14,17 +15,22 @@ function ChatPage() {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   
     try {
+      const csrfToken = Cookies.get('csrftoken');
+
       const response = await fetch('http://localhost:8000/message/', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'X-CSRFTOKEN': csrfToken,
         },
         body: JSON.stringify({ user_text: userMessage }),
       });
+
   
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
       }
+      
       const data = await response.json();
       console.log(data);
       setMessages((prevMessages) => {
