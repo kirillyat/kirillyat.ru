@@ -3,24 +3,48 @@
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 20px;
-  width: 30%;
+  width: 90%;
+  max-width: 1200px;
   border-radius: 60px;
-  height: 100px;
-  flex-direction: row;
-  justify-content: space-between;
+  height: 80px;
   background-color: aliceblue;
-  box-shadow: 10px 20px 10px rgba(0, 0, 0, 0.3);
-  text-align: center;
+  box-shadow: 5px 10px 15px rgba(0, 0, 0, 0.2);
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+}
+
+.navbar-left {
+  display: flex;
   align-items: center;
 }
 
-.KiriLLM {
+.navbar-right {
+  display: flex;
+  gap: 20px;
+}
+
+.kirillyat {
   font-weight: bold;
   font-size: 30px;
   display: flex;
   background: linear-gradient(to right, #ff0606, #0c2ef3);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #0c2ef3;
 }

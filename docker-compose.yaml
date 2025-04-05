@@ -13,18 +13,20 @@ services:
       context: ./backend
     ports:
       - "8000:8000"
+    volumes:
+      - ./lectures:/lectures
     environment:
       POSTGRES_DB: mydatabase
       POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword 
+      POSTGRES_PASSWORD: mypassword
     depends_on:
       - ollama
     
   ollama:
     container_name: ollama
-    pull_policy: always
-    build:
-      context: ./ollama
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
     ports:
       - "11434:11434"
     restart: always
@@ -41,3 +43,6 @@ services:
         MINIO_ROOT_USER: minioadmin
         MINIO_ROOT_PASSWORD: minioadmin
       command: server /data --console-address ":9001"
+
+volumes:
+  ollama_data:

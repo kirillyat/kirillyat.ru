@@ -3,3 +3,5 @@ uvicorn
 Django
 Pillow
 django-cors-headers
+markdown
+pygments

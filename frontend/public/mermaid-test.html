@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                securityLevel: 'loose',
+                fontFamily: 'monospace'
+            });
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .mermaid {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mermaid Diagram Test</h1>
+    
+    <div class="mermaid">
+        graph TD
+            A[HTTP Status Codes] --> B[2xx: Success]
+            A --> C[3xx: Redirection]
+            A --> D[4xx: Client Error]
+            A --> E[5xx: Server Error]
+            
+            B --> B1[200: OK]
+            B --> B2[201: Created]
+            B --> B3[204: No Content]
+            
+            C --> C1[301: Moved Permanently]
+            C --> C2[304: Not Modified]
+            
+            D --> D1[400: Bad Request]
+            D --> D2[401: Unauthorized]
+            D --> D3[403: Forbidden]
+            D --> D4[404: Not Found]
+            D --> D5[422: Unprocessable Entity]
+            
+            E --> E1[500: Internal Server Error]
+            E --> E2[503: Service Unavailable]
+    </div>
+    
+    <p>If you can see a diagram above, Mermaid is working correctly!</p>
+</body>
+</html>

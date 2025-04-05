@@ -17,12 +17,41 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 
 from feed.views import post, feed
-from chat.views import message
+from chat.views import message, chat_history, clear_chat
+from resume.views import (
+    resume_data,
+    folders_list,
+    folder_detail,
+    lectures_list,
+    lecture_detail,
+    mentoring_sessions,
+    book_session,
+)
 
 urlpatterns = [
+    path("admin/", admin.site.urls),
     path("feed/", feed),
     path("post/", post),
     path("message/", message),
+    path("chat/history/", chat_history, name="chat_history"),
+    path("chat/clear/", clear_chat, name="clear_chat"),
+    # Resume endpoints
+    path("resume/", resume_data, name="resume_data"),
+    # Lecture folders endpoints
+    path("folders/", folders_list, name="folders_list"),
+    path("folders/<slug:slug>/", folder_detail, name="folder_detail"),
+    # Lectures endpoints
+    path("lectures/", lectures_list, name="lectures_list"),
+    path("lectures/<slug:slug>/", lecture_detail, name="lecture_detail"),
+    # Mentoring endpoints
+    path("mentoring/sessions/", mentoring_sessions, name="mentoring_sessions"),
+    path("mentoring/book/<int:session_id>/", book_session, name="book_session"),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
