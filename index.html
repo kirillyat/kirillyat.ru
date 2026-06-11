@@ -10,11 +10,13 @@
   <meta property="og:url" content="https://kirillyat.ru">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>⚡</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🌿</text></svg>">
 </head>
 <body>
+  <!-- северное сияние на фоне -->
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div class="noise" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
 
@@ -22,7 +24,12 @@
     <a class="nav__logo" href="#top">k<span class="accent">.</span>yat</a>
     <nav class="nav__links" id="navLinks"></nav>
     <div class="nav__actions">
-      <button class="lang-toggle" id="langToggle" aria-label="Switch language">EN</button>
+      <div class="lang-switch" id="langSwitch" role="tablist" aria-label="Language">
+        <span class="lang-switch__thumb" id="langThumb"></span>
+        <button data-lang="ru" role="tab">RU</button>
+        <button data-lang="en" role="tab">EN</button>
+        <button data-lang="fr" role="tab">FR</button>
+      </div>
     </div>
   </header>
 
@@ -39,8 +46,8 @@
           </div>
           <p class="hero__tagline" id="heroTagline"></p>
           <div class="hero__cta">
-            <a href="#mentoring" class="btn btn--primary magnetic" id="ctaMentor"></a>
-            <a href="#contact" class="btn btn--ghost magnetic" id="ctaContact"></a>
+            <a href="#mentoring" class="btn btn--primary" id="ctaMentor"></a>
+            <a href="#contact" class="btn btn--ghost" id="ctaContact"></a>
           </div>
         </div>
 
@@ -73,32 +80,32 @@
 
     <!-- ============ ABOUT / BENTO ============ -->
     <section class="section" id="about">
-      <h2 class="section__title reveal"><span class="section__num mono">01</span><span class="scramble" id="aboutTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">01</span><span id="aboutTitle"></span></h2>
       <div class="bento" id="bentoGrid"></div>
     </section>
 
     <!-- ============ EXPERIENCE ============ -->
     <section class="section" id="experience">
-      <h2 class="section__title reveal"><span class="section__num mono">02</span><span class="scramble" id="expTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">02</span><span id="expTitle"></span></h2>
       <div class="timeline" id="timeline"></div>
     </section>
 
     <!-- ============ SKILLS ============ -->
     <section class="section" id="skills">
-      <h2 class="section__title reveal"><span class="section__num mono">03</span><span class="scramble" id="skillsTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">03</span><span id="skillsTitle"></span></h2>
       <div class="skills" id="skillsGrid"></div>
     </section>
 
     <!-- ============ MATERIALS ============ -->
     <section class="section" id="materials">
-      <h2 class="section__title reveal"><span class="section__num mono">04</span><span class="scramble" id="matTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">04</span><span id="matTitle"></span></h2>
       <div class="filters reveal" id="matFilters"></div>
       <div class="materials" id="matList"></div>
     </section>
 
     <!-- ============ MENTORING ============ -->
     <section class="section" id="mentoring">
-      <h2 class="section__title reveal"><span class="section__num mono">05</span><span class="scramble" id="menTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">05</span><span id="menTitle"></span></h2>
       <p class="mentoring__lead reveal" id="menLead"></p>
       <div class="mentoring">
         <div class="mentoring__points" id="menPoints"></div>
@@ -123,9 +130,9 @@
 
     <!-- ============ CONTACT ============ -->
     <section class="section section--contact" id="contact">
-      <h2 class="section__title reveal"><span class="section__num mono">06</span><span class="scramble" id="contactTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">06</span><span id="contactTitle"></span></h2>
       <p class="contact__lead reveal" id="contactLead"></p>
-      <button class="contact__email reveal magnetic" id="emailBtn">
+      <button class="contact__email reveal" id="emailBtn">
         <span id="emailText"></span>
         <span class="contact__copy mono" id="copyHint"></span>
       </button>

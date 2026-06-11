@@ -7,27 +7,6 @@
   let lang = localStorage.getItem("lang");
   if (!LANGS.includes(lang)) lang = "ru";
   let typeTimer = null;
-  const nextLang = () => LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
-
-  /* ---------- scramble-эффект для заголовков ---------- */
-  const SCRAMBLE_CHARS = "!<>-_\\/[]{}=+*^?#";
-  function scramble(el, finalText) {
-    if (el.dataset.scrambling) return;
-    el.dataset.scrambling = "1";
-    let frame = 0;
-    const iv = setInterval(() => {
-      frame++;
-      const done = frame / 2;
-      el.textContent = [...finalText]
-        .map((c, i) => (c === "\n" || c === " " || i < done ? c : SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0]))
-        .join("");
-      if (done >= finalText.length) {
-        clearInterval(iv);
-        el.textContent = finalText;
-        delete el.dataset.scrambling;
-      }
-    }, 28);
-  }
 
   /* ---------- рендер контента из CONTENT[lang] ---------- */
   function render() {
@@ -35,10 +14,10 @@
     document.documentElement.lang = lang;
 
     $("navLinks").innerHTML = t.nav.map((l) => `<a href="${l.href}">${l.label}</a>`).join("");
-    $("langToggle").textContent = nextLang().toUpperCase();
+    updateLangSwitch();
 
     $("heroHello").textContent = t.hero.hello;
-    scramble($("heroName"), t.hero.name);
+    $("heroName").textContent = t.hero.name;
     $("heroTagline").textContent = t.hero.tagline;
     $("ctaMentor").textContent = t.hero.ctaMentor;
     $("ctaContact").textContent = t.hero.ctaContact;
@@ -47,7 +26,7 @@
     // marquee: стек по кругу
     const words = t.skills.groups.flatMap((g) => g.items);
     $("marqueeTrack").innerHTML = [...words, ...words]
-      .map((w) => `<span>${w}<i class="accent"> ✦ </i></span>`)
+      .map((w) => `<span>${w}<i> ❋ </i></span>`)
       .join("");
 
     $("aboutTitle").textContent = t.about.title;
@@ -191,15 +170,15 @@
       const word = words[wi];
       ci += deleting ? -1 : 1;
       el.textContent = word.slice(0, ci);
-      let delay = deleting ? 35 : 70;
-      if (!deleting && ci === word.length) { delay = 2000; deleting = true; }
-      else if (deleting && ci === 0) { deleting = false; wi = (wi + 1) % words.length; delay = 400; }
+      let delay = deleting ? 45 : 95;
+      if (!deleting && ci === word.length) { delay = 2600; deleting = true; }
+      else if (deleting && ci === 0) { deleting = false; wi = (wi + 1) % words.length; delay = 600; }
       typeTimer = setTimeout(tick, delay);
     }
     tick();
   }
 
-  /* ---------- scroll reveals (+ scramble заголовков, счётчики) ---------- */
+  /* ---------- scroll reveals + счётчики ---------- */
   let observer = null;
   function observeReveals() {
     if (observer) observer.disconnect();
@@ -208,8 +187,6 @@
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
           e.target.classList.add("visible");
-          const sc = e.target.querySelector(".scramble");
-          if (sc) scramble(sc, sc.textContent);
           const cnt = e.target.querySelector("[data-count]");
           if (cnt) animateCounter(cnt);
         }),
@@ -226,14 +203,14 @@
     const suffix = target.replace(String(num), "");
     const start = performance.now();
     function step(now) {
-      const p = Math.min((now - start) / 1200, 1);
+      const p = Math.min((now - start) / 1600, 1);
       el.textContent = Math.round(num * (1 - Math.pow(1 - p, 3))) + suffix;
       if (p < 1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
   }
 
-  /* ---------- карточки: glow за курсором + 3D-наклон ---------- */
+  /* ---------- карточки: glow за курсором + мягкий наклон ---------- */
   function bindCards() {
     document.querySelectorAll(".tilt").forEach((card) => {
       card.addEventListener("pointermove", (e) => {
@@ -241,9 +218,9 @@
         const x = e.clientX - r.left, y = e.clientY - r.top;
         card.style.setProperty("--mx", `${x}px`);
         card.style.setProperty("--my", `${y}px`);
-        const rx = ((y / r.height) - 0.5) * -7;
-        const ry = ((x / r.width) - 0.5) * 7;
-        card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        const rx = ((y / r.height) - 0.5) * -3;
+        const ry = ((x / r.width) - 0.5) * 3;
+        card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
       });
       card.addEventListener("pointerleave", () => { card.style.transform = ""; });
     });
@@ -267,26 +244,10 @@
     );
   }, { passive: true });
 
-  /* ---------- magnetic buttons ---------- */
-  document.addEventListener("pointermove", (e) => {
-    document.querySelectorAll(".magnetic").forEach((el) => {
-      const r = el.getBoundingClientRect();
-      const dx = e.clientX - (r.left + r.width / 2);
-      const dy = e.clientY - (r.top + r.height / 2);
-      const dist = Math.hypot(dx, dy);
-      if (dist < 120) {
-        const pull = (120 - dist) / 120;
-        el.style.transform = `translate(${dx * 0.18 * pull}px, ${dy * 0.18 * pull}px)`;
-      } else {
-        el.style.transform = "";
-      }
-    });
-  });
-
-  /* ---------- canvas: частицы + matrix-режим ---------- */
+  /* ---------- canvas: светлячки + matrix-режим ---------- */
   const canvas = $("heroCanvas");
   const ctx = canvas.getContext("2d");
-  let particles = [];
+  let fireflies = [];
   let matrixUntil = 0;
   let matrixCols = [];
   const mouse = { x: -9999, y: -9999 };
@@ -296,69 +257,70 @@
     canvas.width = canvas.offsetWidth * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;
     ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-    const count = Math.min(110, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 16000));
-    particles = Array.from({ length: count }, () => ({
+    const count = Math.min(46, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 34000));
+    fireflies = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.offsetWidth,
       y: Math.random() * canvas.offsetHeight,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      r: Math.random() * 1.6 + 0.4,
+      vx: (Math.random() - 0.5) * 0.16,
+      vy: (Math.random() - 0.5) * 0.16,
+      r: Math.random() * 1.8 + 0.8,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.4 + Math.random() * 0.7,
+      warm: Math.random() < 0.25, // часть светлячков — янтарные
     }));
     matrixCols = Array.from({ length: Math.ceil(canvas.offsetWidth / 18) }, () => Math.random() * -50);
   }
 
   function drawMatrix() {
     const w = canvas.offsetWidth, h = canvas.offsetHeight;
-    ctx.fillStyle = "rgba(10, 10, 15, 0.18)";
+    ctx.fillStyle = "rgba(7, 11, 9, 0.18)";
     ctx.fillRect(0, 0, w, h);
     ctx.font = "14px JetBrains Mono, monospace";
     matrixCols.forEach((y, i) => {
       const ch = MATRIX_GLYPHS[(Math.random() * MATRIX_GLYPHS.length) | 0];
-      ctx.fillStyle = Math.random() > 0.95 ? "#eaffa0" : "rgba(214, 255, 63, 0.75)";
+      ctx.fillStyle = Math.random() > 0.95 ? "#d8ffe9" : "rgba(139, 232, 192, 0.7)";
       ctx.fillText(ch, i * 18, y * 18);
-      matrixCols[i] = y * 18 > h && Math.random() > 0.97 ? 0 : y + 0.6;
+      matrixCols[i] = y * 18 > h && Math.random() > 0.97 ? 0 : y + 0.5;
     });
   }
 
-  function drawParticles() {
+  function drawFireflies(now) {
     if (Date.now() < matrixUntil) {
       drawMatrix();
-      requestAnimationFrame(drawParticles);
+      requestAnimationFrame(drawFireflies);
       return;
     }
     const w = canvas.offsetWidth, h = canvas.offsetHeight;
     ctx.clearRect(0, 0, w, h);
-    for (const p of particles) {
-      // лёгкое отталкивание от курсора
-      const dx = p.x - mouse.x, dy = p.y - mouse.y;
+    const t = now / 1000;
+    for (const f of fireflies) {
+      // плавное блуждание + лёгкий уход от курсора
+      const dx = f.x - mouse.x, dy = f.y - mouse.y;
       const d = Math.hypot(dx, dy);
-      if (d < 110 && d > 0) {
-        p.x += (dx / d) * 0.6;
-        p.y += (dy / d) * 0.6;
+      if (d < 90 && d > 0) {
+        f.x += (dx / d) * 0.25;
+        f.y += (dy / d) * 0.25;
       }
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > w) p.vx *= -1;
-      if (p.y < 0 || p.y > h) p.vy *= -1;
+      f.x += f.vx + Math.sin(t * f.speed + f.phase) * 0.12;
+      f.y += f.vy + Math.cos(t * f.speed * 0.8 + f.phase) * 0.1;
+      if (f.x < -10) f.x = w + 10; if (f.x > w + 10) f.x = -10;
+      if (f.y < -10) f.y = h + 10; if (f.y > h + 10) f.y = -10;
 
+      const glow = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(t * f.speed * 1.6 + f.phase));
+      const color = f.warm ? "242, 204, 147" : "139, 232, 192";
+      const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 7);
+      grad.addColorStop(0, `rgba(${color}, ${glow})`);
+      grad.addColorStop(1, `rgba(${color}, 0)`);
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(214, 255, 63, 0.5)";
+      ctx.arc(f.x, f.y, f.r * 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(${color}, ${Math.min(glow + 0.35, 0.9)})`;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
       ctx.fill();
     }
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i], b = particles[j];
-        const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (d < 130) {
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(139, 124, 246, ${0.18 * (1 - d / 130)})`;
-          ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(drawParticles);
+    requestAnimationFrame(drawFireflies);
   }
 
   canvas.addEventListener("pointermove", (e) => {
@@ -381,14 +343,24 @@
     }
   });
 
-  /* ---------- lang toggle ---------- */
+  /* ---------- переключатель языков (свитч) ---------- */
+  function updateLangSwitch() {
+    const idx = LANGS.indexOf(lang);
+    $("langThumb").style.transform = `translateX(${idx * 46}px)`;
+    $("langSwitch").querySelectorAll("button").forEach((b) =>
+      b.classList.toggle("active", b.dataset.lang === lang)
+    );
+  }
   function setLang(l) {
+    if (!LANGS.includes(l) || l === lang) return;
     lang = l;
     localStorage.setItem("lang", lang);
     render();
     bootTerminal(true);
   }
-  $("langToggle").addEventListener("click", () => setLang(nextLang()));
+  $("langSwitch").querySelectorAll("button").forEach((b) =>
+    b.addEventListener("click", () => setLang(b.dataset.lang))
+  );
 
   /* ---------- терминал в hero ---------- */
   const termBody = $("termBody");
@@ -423,7 +395,7 @@
       target.textContent = text.slice(0, ++i);
       termBody.scrollTop = termBody.scrollHeight;
       if (i >= text.length) { clearInterval(iv); done && done(); }
-    }, isCmd ? 55 : 8);
+    }, isCmd ? 65 : 10);
     bootTimers.push(iv);
   }
 
@@ -440,7 +412,7 @@
     (function next() {
       if (i >= lines.length) return;
       const l = lines[i++];
-      termTypeLine(l.text, l.cmd, () => setTimeout(next, 350));
+      termTypeLine(l.text, l.cmd, () => setTimeout(next, 420));
     })();
   }
 
@@ -501,6 +473,6 @@
   /* ---------- init ---------- */
   render();
   resizeCanvas();
-  drawParticles();
+  requestAnimationFrame(drawFireflies);
   bootTerminal();
 })();
