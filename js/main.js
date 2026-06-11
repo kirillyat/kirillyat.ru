@@ -289,7 +289,7 @@
     const h = document.documentElement;
     const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
     $("progressBar").style.width = `${pct}%`;
-    $("progressRunner").style.left = `${pct}%`;
+    $("progressHead").style.left = `${pct}%`;
     nav.classList.toggle("scrolled", h.scrollTop > 24);
 
     let current = "";
@@ -342,39 +342,139 @@
     requestAnimationFrame(blobLoop);
   }
 
-  /* ---------- солнечный слайдер: тяни — меняется свет ---------- */
-  // t: 0 = рассвет (5:00), 1 = полдень (12:00)
+  /* ---------- солнечный слайдер: полный цикл дня ----------
+     t: 0 = рассвет (5:00) → 0.55 = день → 0.78 = закат → 1 = ночь (23:00).
+     Все цвета темы интерполируются между опорными точками и
+     записываются в CSS-переменные — страница «живёт» при перетаскивании. */
   let dayT = parseFloat(localStorage.getItem("dayT"));
-  if (isNaN(dayT)) dayT = 0.35;
-  const DAWN = { sky: [255, 190, 140], sun: [255, 150, 70], glow: 0.7 };
-  const NOON = { sky: [120, 180, 250], sun: [255, 226, 150], glow: 0.95 };
+  if (isNaN(dayT)) dayT = 0.3;
+
+  // опорные точки палитры: [t, значения]
+  const STOPS = [
+    { t: 0.00, bg: [247, 238, 228], text: [33, 38, 54], dim: [110, 108, 118],
+      accent: [226, 125, 70], accentDeep: [191, 95, 44], grass: [110, 160, 95],
+      glassK: 1, borderA: 0.85, edgeA: 0.9, shadow: [120, 70, 40, 0.16],
+      chipA: 0.45, inputA: 0.6, hair: [60, 45, 40, 0.1],
+      ghostF: [60, 45, 40, 0.03], ghostS: [60, 45, 40, 0.08], spec: 0.45,
+      dayTop: [255, 208, 166], dayMid: [250, 235, 219], dayBot: [236, 238, 224],
+      sky: [255, 178, 118, 0.5], sun: [255, 140, 60, 0.42],
+      cardTop: [255, 196, 150, 0.45], cardBot: [255, 236, 200, 0.35] },
+    { t: 0.30, bg: [238, 244, 250], text: [22, 36, 58], dim: [93, 111, 134],
+      accent: [61, 142, 240], accentDeep: [34, 113, 212], grass: [58, 165, 100],
+      glassK: 1, borderA: 0.9, edgeA: 0.95, shadow: [35, 80, 140, 0.14],
+      chipA: 0.5, inputA: 0.65, hair: [22, 36, 58, 0.08],
+      ghostF: [22, 36, 58, 0.025], ghostS: [22, 36, 58, 0.07], spec: 0.4,
+      dayTop: [220, 236, 253], dayMid: [234, 243, 252], dayBot: [238, 246, 238],
+      sky: [120, 180, 250, 0.5], sun: [255, 205, 120, 0.33],
+      cardTop: [150, 200, 250, 0.35], cardBot: [255, 240, 210, 0.3] },
+    { t: 0.55, bg: [235, 245, 253], text: [18, 36, 62], dim: [88, 110, 136],
+      accent: [44, 132, 240], accentDeep: [26, 105, 205], grass: [52, 162, 96],
+      glassK: 1, borderA: 0.92, edgeA: 0.95, shadow: [30, 80, 145, 0.13],
+      chipA: 0.5, inputA: 0.65, hair: [18, 36, 62, 0.08],
+      ghostF: [18, 36, 62, 0.025], ghostS: [18, 36, 62, 0.07], spec: 0.42,
+      dayTop: [178, 217, 252], dayMid: [224, 240, 252], dayBot: [234, 247, 239],
+      sky: [80, 162, 250, 0.55], sun: [255, 236, 168, 0.3],
+      cardTop: [120, 185, 250, 0.4], cardBot: [220, 242, 225, 0.35] },
+    { t: 0.78, bg: [244, 233, 228], text: [44, 35, 56], dim: [122, 104, 116],
+      accent: [232, 116, 88], accentDeep: [198, 84, 60], grass: [96, 148, 92],
+      glassK: 0.85, borderA: 0.8, edgeA: 0.85, shadow: [110, 55, 60, 0.18],
+      chipA: 0.42, inputA: 0.58, hair: [70, 45, 55, 0.1],
+      ghostF: [70, 45, 55, 0.03], ghostS: [70, 45, 55, 0.08], spec: 0.4,
+      dayTop: [255, 184, 144], dayMid: [248, 222, 211], dayBot: [228, 226, 224],
+      sky: [255, 146, 104, 0.5], sun: [255, 116, 64, 0.45],
+      cardTop: [255, 160, 120, 0.5], cardBot: [120, 110, 160, 0.3] },
+    { t: 1.00, bg: [13, 19, 34], text: [232, 237, 246], dim: [144, 158, 180],
+      accent: [127, 183, 255], accentDeep: [158, 203, 255], grass: [98, 158, 118],
+      glassK: 0.16, borderA: 0.18, edgeA: 0.22, shadow: [0, 0, 0, 0.5],
+      chipA: 0.06, inputA: 0.07, hair: [255, 255, 255, 0.1],
+      ghostF: [255, 255, 255, 0.02], ghostS: [255, 255, 255, 0.06], spec: 0.14,
+      dayTop: [9, 14, 28], dayMid: [13, 19, 34], dayBot: [11, 20, 27],
+      sky: [62, 92, 178, 0.32], sun: [198, 218, 255, 0.2],
+      cardTop: [16, 24, 46, 0.85], cardBot: [22, 36, 52, 0.7] },
+  ];
+
+  function sampleStops(t) {
+    let a = STOPS[0], b = STOPS[STOPS.length - 1];
+    for (let i = 0; i < STOPS.length - 1; i++) {
+      if (t >= STOPS[i].t && t <= STOPS[i + 1].t) { a = STOPS[i]; b = STOPS[i + 1]; break; }
+    }
+    const u = b.t === a.t ? 0 : (t - a.t) / (b.t - a.t);
+    const out = {};
+    for (const k of Object.keys(a)) {
+      out[k] = Array.isArray(a[k]) ? a[k].map((v, i) => lerp(v, b[k][i], u)) : lerp(a[k], b[k], u);
+    }
+    return out;
+  }
+  const rgb = (c) => `rgb(${c.slice(0, 3).map(Math.round).join(",")})`;
+  const rgba = (c, aOverride) =>
+    `rgba(${c.slice(0, 3).map(Math.round).join(",")}, ${(aOverride ?? c[3]).toFixed(3)})`;
 
   function updateSunScene() {
     const t = dayT;
-    const sky = mix(DAWN.sky, NOON.sky, t);
-    const sun = mix(DAWN.sun, NOON.sun, t);
-    const glow = lerp(DAWN.glow, NOON.glow, t);
-    $("skyBlob").style.background =
-      `radial-gradient(ellipse, rgba(${sky.join(",")}, 0.5), transparent 65%)`;
-    $("sunBlob").style.background =
-      `radial-gradient(circle, rgba(${sun.join(",")}, ${glow * 0.6}), rgba(${sun.join(",")}, 0.14) 38%, transparent 62%)`;
-    $("sunBlob").style.left = `${lerp(-4, 34, t)}vmax`;
-    $("sunBlob").style.top = `${lerp(6, -22, t)}vmax`;
+    const s = sampleStops(t);
+    const R = document.documentElement.style;
 
-    // солнце в карточке: по дуге от горизонта слева (рассвет) к зениту (полдень)
-    const a = ((170 - t * 80) * Math.PI) / 180;
+    R.setProperty("--bg", rgb(s.bg));
+    R.setProperty("--text", rgb(s.text));
+    R.setProperty("--text-dim", rgb(s.dim));
+    R.setProperty("--accent", rgb(s.accent));
+    R.setProperty("--accent-deep", rgb(s.accentDeep));
+    R.setProperty("--accent-dim", rgba([...s.accent, 0.13]));
+    R.setProperty("--grass", rgb(s.grass));
+    const g = s.glassK;
+    R.setProperty("--glass",
+      `linear-gradient(160deg, rgba(255,255,255,${(0.78 * g).toFixed(3)}), rgba(255,255,255,${(0.42 * g).toFixed(3)}) 45%, rgba(255,255,255,${(0.28 * g).toFixed(3)}) 80%, rgba(255,255,255,${(0.5 * g).toFixed(3)}))`);
+    R.setProperty("--glass-border", `rgba(255,255,255,${s.borderA.toFixed(3)})`);
+    const e = s.edgeA;
+    R.setProperty("--glass-edge",
+      `inset 0 1px 0 rgba(255,255,255,${e.toFixed(3)}), inset 1px 0 0 rgba(255,255,255,${(e * 0.42).toFixed(3)}), inset 0 -1px 0 rgba(255,255,255,${(e * 0.26).toFixed(3)}), 0 0 0 0.5px rgba(255,255,255,${(e * 0.5).toFixed(3)})`);
+    R.setProperty("--glass-shadow",
+      `0 20px 50px ${rgba(s.shadow)}, 0 3px 10px ${rgba(s.shadow, s.shadow[3] * 0.5)}`);
+    R.setProperty("--chip-bg", `rgba(255,255,255,${s.chipA.toFixed(3)})`);
+    R.setProperty("--chip-border", `rgba(255,255,255,${Math.min(s.borderA, 0.9).toFixed(3)})`);
+    R.setProperty("--input-bg", `rgba(255,255,255,${s.inputA.toFixed(3)})`);
+    R.setProperty("--input-border", `rgba(255,255,255,${s.borderA.toFixed(3)})`);
+    R.setProperty("--hairline", rgba(s.hair));
+    R.setProperty("--ghost-fill", rgba(s.ghostF));
+    R.setProperty("--ghost-stroke", rgba(s.ghostS));
+    R.setProperty("--blob-bg",
+      `linear-gradient(160deg, rgba(255,255,255,${Math.min(0.95, 0.95 * (g + 0.25)).toFixed(3)}), rgba(255,255,255,${(0.55 * (g + 0.25)).toFixed(3)}))`);
+    R.setProperty("--spec", `rgba(255,255,255,${s.spec.toFixed(3)})`);
+
+    // сцена на фоне
+    document.querySelector(".day").style.background =
+      `linear-gradient(180deg, ${rgb(s.dayTop)} 0%, ${rgb(s.dayMid)} 45%, ${rgb(s.dayBot)} 100%)`;
+    $("skyBlob").style.background =
+      `radial-gradient(ellipse, ${rgba(s.sky)}, transparent 65%)`;
+    $("sunBlob").style.background =
+      `radial-gradient(circle, ${rgba(s.sun)}, ${rgba(s.sun, s.sun[3] * 0.3)} 38%, transparent 62%)`;
+    $("sunBlob").style.left = `${lerp(-4, 38, t)}vmax`;
+    $("sunBlob").style.top = `${t < 0.55 ? lerp(6, -22, t / 0.55) : lerp(-22, 10, (t - 0.55) / 0.45)}vmax`;
+
+    // солнце в карточке: полная дуга — восход слева, зенит, закат справа
+    const a = ((170 - t * 160) * Math.PI) / 180;
     $("sunDot").style.left = `${50 + 41 * Math.cos(a)}%`;
     $("sunDot").style.bottom = `${-10 + 80 * Math.sin(a)}%`;
+    $("sunDot").classList.toggle("moon", t > 0.85);
 
-    // время 5:00 → 12:00
-    const mins = Math.round(300 + t * 420);
+    // небо в карточке, звёзды, трава тускнеет к ночи
+    $("sunSky").style.background =
+      `linear-gradient(180deg, ${rgba(s.cardTop)}, ${rgba(s.cardBot)} 75%, rgba(120,185,130,${(0.35 * (1 - Math.max(0, (t - 0.78) / 0.22) * 0.7)).toFixed(3)}))`;
+    const nightK = Math.max(0, Math.min(1, (t - 0.78) / 0.22));
+    $("sunStars").style.opacity = nightK.toFixed(2);
+    $("sunHorizon").style.opacity = (1 - nightK * 0.6).toFixed(2);
+    $("grassBlob").style.opacity = (1 - nightK * 0.7).toFixed(2);
+    document.querySelector(".day__river").style.opacity = (1 - nightK * 0.6).toFixed(2);
+
+    // время 5:00 → 23:00
+    const mins = Math.round(300 + t * 1080);
     $("sunTime").textContent =
       `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
     updateSunCaption();
   }
   function updateSunCaption() {
     const caps = CONTENT[lang].sun.captions;
-    const idx = dayT < 0.18 ? 0 : dayT < 0.45 ? 1 : dayT < 0.75 ? 2 : 3;
+    const idx = dayT < 0.15 ? 0 : dayT < 0.45 ? 1 : dayT < 0.68 ? 2 : dayT < 0.88 ? 3 : 4;
     $("sunCaption").textContent = caps[idx];
   }
 
@@ -429,7 +529,11 @@
       if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
 
       const tw = 0.35 + 0.3 * (0.5 + 0.5 * Math.sin(t * p.speed * 1.4 + p.phase));
-      const color = p.gold ? "255, 200, 110" : "255, 255, 255";
+      // днём — золотая пыльца, к ночи частицы становятся холодными «звёздами»
+      const nightK = Math.max(0, Math.min(1, (dayT - 0.78) / 0.22));
+      const color = p.gold
+        ? mix([255, 200, 110], [200, 220, 255], nightK).join(", ")
+        : mix([255, 255, 255], [220, 235, 255], nightK).join(", ");
       const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 5);
       grad.addColorStop(0, `rgba(${color}, ${tw})`);
       grad.addColorStop(1, `rgba(${color}, 0)`);

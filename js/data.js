@@ -23,13 +23,14 @@ const CONTENT = {
       scroll: "скролль вниз",
     },
     sun: {
-      title: "утренний свет",
-      hint: "потяни солнце — поменяется свет",
+      title: "свет дня",
+      hint: "потяни солнце — от рассвета до ночи",
       captions: [
         "рассвет — город ещё спит",
         "раннее утро — лучшее время для пробежки",
-        "утро — кофе и код",
-        "полдень — всё в самом разгаре",
+        "день — всё в самом разгаре",
+        "закат — время восстановиться",
+        "ночь — город спит, код компилируется",
       ],
     },
     about: {
@@ -187,13 +188,14 @@ const CONTENT = {
       scroll: "scroll down",
     },
     sun: {
-      title: "morning light",
-      hint: "drag the sun — the light changes",
+      title: "daylight",
+      hint: "drag the sun — from dawn till night",
       captions: [
         "dawn — the city is still asleep",
         "early morning — best time for a run",
-        "morning — coffee and code",
-        "noon — everything in full swing",
+        "midday — everything in full swing",
+        "sunset — time to recover",
+        "night — the city sleeps, the code compiles",
       ],
     },
     about: {
@@ -351,13 +353,14 @@ const CONTENT = {
       scroll: "défiler",
     },
     sun: {
-      title: "lumière du matin",
-      hint: "déplace le soleil — la lumière change",
+      title: "lumière du jour",
+      hint: "déplace le soleil — de l'aube à la nuit",
       captions: [
         "l'aube — la ville dort encore",
         "tôt le matin — le meilleur moment pour courir",
-        "le matin — café et code",
         "midi — tout bat son plein",
+        "le coucher du soleil — le temps de récupérer",
+        "la nuit — la ville dort, le code compile",
       ],
     },
     about: {

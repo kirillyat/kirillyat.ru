@@ -25,7 +25,7 @@
   <div class="noise" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true">
     <span id="progressBar"></span>
-    <span class="progress__runner" id="progressRunner">🏃</span>
+    <span class="progress__head" id="progressHead"></span>
   </div>
   <!-- стеклянная линза, следующая за курсором -->
   <div class="lens" id="lens" aria-hidden="true"></div>
@@ -69,9 +69,10 @@
           <div class="sun-card" id="sunCard">
             <p class="sun-card__title mono" id="sunTitle"></p>
             <div class="sun-card__sky" id="sunSky">
+              <div class="sun-card__stars" id="sunStars"></div>
               <div class="sun-card__arc"></div>
               <div class="sun-card__sun" id="sunDot"></div>
-              <div class="sun-card__horizon"></div>
+              <div class="sun-card__horizon" id="sunHorizon"></div>
             </div>
             <div class="sun-card__meta">
               <span class="sun-card__time mono" id="sunTime">06:30</span>
