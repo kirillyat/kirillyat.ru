@@ -24,7 +24,8 @@ const CONTENT = {
     },
     sun: {
       title: "свет дня",
-      hint: "потяни солнце — от рассвета до ночи",
+      hint: "потяни солнце — или выбери момент дня",
+      presets: { dawn: "рассвет", day: "день", sunset: "закат", night: "ночь", now: "как сейчас" },
       captions: [
         "рассвет — город ещё спит",
         "раннее утро — лучшее время для пробежки",
@@ -189,7 +190,8 @@ const CONTENT = {
     },
     sun: {
       title: "daylight",
-      hint: "drag the sun — from dawn till night",
+      hint: "drag the sun — or pick a moment of the day",
+      presets: { dawn: "dawn", day: "day", sunset: "sunset", night: "night", now: "now" },
       captions: [
         "dawn — the city is still asleep",
         "early morning — best time for a run",
@@ -354,7 +356,8 @@ const CONTENT = {
     },
     sun: {
       title: "lumière du jour",
-      hint: "déplace le soleil — de l'aube à la nuit",
+      hint: "déplace le soleil — ou choisis un moment",
+      presets: { dawn: "aube", day: "jour", sunset: "coucher", night: "nuit", now: "maintenant" },
       captions: [
         "l'aube — la ville dort encore",
         "tôt le matin — le meilleur moment pour courir",

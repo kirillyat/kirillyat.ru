@@ -34,6 +34,7 @@
 
     $("sunTitle").textContent = t.sun.title;
     $("sunHint").textContent = t.sun.hint;
+    renderSunPresets();
     updateSunCaption();
 
     // marquee: стек по кругу
@@ -346,8 +347,57 @@
      t: 0 = рассвет (5:00) → 0.55 = день → 0.78 = закат → 1 = ночь (23:00).
      Все цвета темы интерполируются между опорными точками и
      записываются в CSS-переменные — страница «живёт» при перетаскивании. */
+  // t из реального локального времени посетителя: 5:00 → 23:00; ночь вне диапазона
+  function tFromNow() {
+    const d = new Date();
+    const mins = d.getHours() * 60 + d.getMinutes();
+    if (mins < 300 || mins > 1380) return 1;
+    return Math.min(1, (mins - 300) / 1080);
+  }
+  // по умолчанию свет соответствует времени суток посетителя,
+  // пока он сам не подвинет солнце
+  let dayAuto = localStorage.getItem("dayAuto") !== "0";
   let dayT = parseFloat(localStorage.getItem("dayT"));
-  if (isNaN(dayT)) dayT = 0.3;
+  if (dayAuto || isNaN(dayT)) dayT = tFromNow();
+
+  let sunTweenId = null;
+  function tweenDay(target) {
+    cancelAnimationFrame(sunTweenId);
+    const from = dayT;
+    const t0 = performance.now();
+    (function step(now) {
+      const p = Math.min((now - t0) / 700, 1);
+      dayT = from + (target - from) * (1 - Math.pow(1 - p, 3));
+      updateSunScene();
+      if (p < 1) sunTweenId = requestAnimationFrame(step);
+      else localStorage.setItem("dayT", dayT.toFixed(3));
+    })(t0);
+  }
+
+  const SUN_PRESETS = { dawn: 0.02, day: 0.5, sunset: 0.78, night: 1 };
+  function renderSunPresets() {
+    const p = CONTENT[lang].sun.presets;
+    $("sunPresets").innerHTML = [...Object.keys(SUN_PRESETS), "now"]
+      .map((k) => `<button class="sun-card__preset" data-preset="${k}">${p[k]}</button>`)
+      .join("");
+    $("sunPresets").querySelectorAll("button").forEach((b) =>
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const k = b.dataset.preset;
+        dayAuto = k === "now";
+        localStorage.setItem("dayAuto", dayAuto ? "1" : "0");
+        tweenDay(k === "now" ? tFromNow() : SUN_PRESETS[k]);
+      })
+    );
+    updateSunPresets();
+  }
+  function updateSunPresets() {
+    $("sunPresets").querySelectorAll("button").forEach((b) => {
+      const k = b.dataset.preset;
+      const active = k === "now" ? dayAuto : !dayAuto && Math.abs(dayT - SUN_PRESETS[k]) < 0.05;
+      b.classList.toggle("active", active);
+    });
+  }
 
   // опорные точки палитры: [t, значения]
   const STOPS = [
@@ -423,9 +473,11 @@
     R.setProperty("--grass", rgb(s.grass));
     const g = s.glassK;
     R.setProperty("--glass",
-      `linear-gradient(160deg, rgba(255,255,255,${(0.78 * g).toFixed(3)}), rgba(255,255,255,${(0.42 * g).toFixed(3)}) 45%, rgba(255,255,255,${(0.28 * g).toFixed(3)}) 80%, rgba(255,255,255,${(0.5 * g).toFixed(3)}))`);
-    R.setProperty("--glass-border", `rgba(255,255,255,${s.borderA.toFixed(3)})`);
+      `linear-gradient(160deg, rgba(255,255,255,${(0.34 * g).toFixed(3)}), rgba(255,255,255,${(0.13 * g).toFixed(3)}) 45%, rgba(255,255,255,${(0.06 * g).toFixed(3)}) 80%, rgba(255,255,255,${(0.18 * g).toFixed(3)}))`);
+    R.setProperty("--glass-border", `rgba(255,255,255,${(s.borderA * 0.85).toFixed(3)})`);
     const e = s.edgeA;
+    R.setProperty("--ring",
+      `linear-gradient(160deg, rgba(255,255,255,${(e * 0.95).toFixed(3)}), rgba(255,255,255,${(e * 0.15).toFixed(3)}) 40%, rgba(255,255,255,${(e * 0.6).toFixed(3)}) 70%, rgba(255,255,255,${(e * 0.25).toFixed(3)}))`);
     R.setProperty("--glass-edge",
       `inset 0 1px 0 rgba(255,255,255,${e.toFixed(3)}), inset 1px 0 0 rgba(255,255,255,${(e * 0.42).toFixed(3)}), inset 0 -1px 0 rgba(255,255,255,${(e * 0.26).toFixed(3)}), 0 0 0 0.5px rgba(255,255,255,${(e * 0.5).toFixed(3)})`);
     R.setProperty("--glass-shadow",
@@ -471,6 +523,7 @@
     $("sunTime").textContent =
       `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
     updateSunCaption();
+    updateSunPresets();
   }
   function updateSunCaption() {
     const caps = CONTENT[lang].sun.captions;
@@ -481,12 +534,19 @@
   const sunSky = $("sunSky");
   let sunDrag = false;
   function sunFromEvent(e) {
+    cancelAnimationFrame(sunTweenId);
+    dayAuto = false;
+    localStorage.setItem("dayAuto", "0");
     const r = sunSky.getBoundingClientRect();
     dayT = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
     localStorage.setItem("dayT", dayT.toFixed(3));
     updateSunScene();
   }
-  $("sunCard").addEventListener("pointerdown", (e) => { sunDrag = true; sunFromEvent(e); });
+  $("sunCard").addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".sun-card__preset")) return;
+    sunDrag = true;
+    sunFromEvent(e);
+  });
   window.addEventListener("pointermove", (e) => { if (sunDrag) sunFromEvent(e); });
   window.addEventListener("pointerup", () => { sunDrag = false; });
 
