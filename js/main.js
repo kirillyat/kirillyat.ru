@@ -16,6 +16,10 @@
     $("navLinks").innerHTML = t.nav.map((l) => `<a href="${l.href}">${l.label}</a>`).join("");
     updateLangSwitch();
 
+    // оверлайны секций — из подписей навигации
+    [["aboutOver", 0], ["expOver", 1], ["skillsOver", 2], ["matOver", 3], ["menOver", 4], ["contactOver", 5]]
+      .forEach(([id, i]) => { $(id).textContent = `${String(i + 1).padStart(2, "0")} — ${t.nav[i].label}`; });
+
     $("heroHello").textContent = t.hero.hello;
     $("heroName").textContent = t.hero.name;
     $("heroTagline").textContent = t.hero.tagline;
@@ -85,6 +89,7 @@
     observeReveals();
     startTypewriter(t.hero.roles);
     bindCards();
+    plxInit();
   }
 
   /* ---------- материалы: карточки + фильтры ---------- */
@@ -224,6 +229,48 @@
       });
       card.addEventListener("pointerleave", () => { card.style.transform = ""; });
     });
+  }
+
+  /* ---------- параллакс: плавная глубина при скролле ---------- */
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let plxEls = [];
+  function plxInit() {
+    plxEls = [...document.querySelectorAll("[data-plx]")].map((el) => ({
+      el,
+      speed: parseFloat(el.dataset.plx),
+      base: el.closest(".section")?.offsetTop || 0,
+      cur: 0,
+    }));
+  }
+  function plxLoop() {
+    const y = window.scrollY;
+    for (const p of plxEls) {
+      const target = (y - p.base) * p.speed;
+      p.cur += (target - p.cur) * 0.07;
+      p.el.style.transform = `translate3d(0, ${p.cur.toFixed(2)}px, 0)`;
+    }
+    requestAnimationFrame(plxLoop);
+  }
+  window.addEventListener("resize", plxInit);
+
+  /* ---------- стеклянная линза за курсором ---------- */
+  const lens = $("lens");
+  const lensPos = { x: -200, y: -200, tx: -200, ty: -200, s: 1, ts: 1 };
+  let lensSeen = false;
+  document.addEventListener("pointermove", (e) => {
+    lensPos.tx = e.clientX;
+    lensPos.ty = e.clientY;
+    if (!lensSeen) { lensSeen = true; lensPos.x = e.clientX; lensPos.y = e.clientY; lens.style.opacity = "1"; }
+    const interactive = e.target.closest("a, button, .tilt, input, select, textarea");
+    lensPos.ts = interactive ? 1.45 : 1;
+  });
+  document.addEventListener("pointerleave", () => { lens.style.opacity = "0"; lensSeen = false; });
+  function lensLoop() {
+    lensPos.x += (lensPos.tx - lensPos.x) * 0.16;
+    lensPos.y += (lensPos.ty - lensPos.y) * 0.16;
+    lensPos.s += (lensPos.ts - lensPos.s) * 0.12;
+    lens.style.transform = `translate(${lensPos.x - 46}px, ${lensPos.y - 46}px) scale(${lensPos.s.toFixed(3)})`;
+    requestAnimationFrame(lensLoop);
   }
 
   /* ---------- nav: progress + active link + bg ---------- */
@@ -475,4 +522,8 @@
   resizeCanvas();
   requestAnimationFrame(drawFireflies);
   bootTerminal();
+  if (!reducedMotion) {
+    requestAnimationFrame(plxLoop);
+    if (matchMedia("(pointer: fine)").matches) requestAnimationFrame(lensLoop);
+  }
 })();

@@ -10,15 +10,17 @@
   <meta property="og:url" content="https://kirillyat.ru">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🌿</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>❄</text></svg>">
 </head>
 <body>
   <!-- северное сияние на фоне -->
   <div class="aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div class="noise" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <!-- стеклянная линза, следующая за курсором -->
+  <div class="lens" id="lens" aria-hidden="true"></div>
 
   <header class="nav" id="nav">
     <a class="nav__logo" href="#top">k<span class="accent">.</span>yat</a>
@@ -37,34 +39,42 @@
     <!-- ============ HERO ============ -->
     <section class="hero" id="hero">
       <canvas id="heroCanvas" aria-hidden="true"></canvas>
+      <!-- парящие стеклянные сферы -->
+      <div class="hero__orbs" aria-hidden="true">
+        <span class="orb orb--1" data-plx="-0.16"></span>
+        <span class="orb orb--2" data-plx="-0.28"></span>
+        <span class="orb orb--3" data-plx="-0.08"></span>
+      </div>
       <div class="hero__inner">
-        <div class="hero__left">
-          <p class="hero__hello mono" id="heroHello"></p>
-          <h1 class="hero__name" id="heroName"></h1>
-          <div class="hero__role mono">
-            <span class="accent">$</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+        <p class="hero__hello mono" id="heroHello"></p>
+        <h1 class="hero__name" id="heroName" data-plx="-0.1"></h1>
+        <div class="hero__row">
+          <div class="hero__left">
+            <div class="hero__role mono">
+              <span class="accent">$</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+            </div>
+            <p class="hero__tagline" id="heroTagline"></p>
+            <div class="hero__cta">
+              <a href="#mentoring" class="btn btn--primary" id="ctaMentor"></a>
+              <a href="#contact" class="btn btn--ghost" id="ctaContact"></a>
+            </div>
           </div>
-          <p class="hero__tagline" id="heroTagline"></p>
-          <div class="hero__cta">
-            <a href="#mentoring" class="btn btn--primary" id="ctaMentor"></a>
-            <a href="#contact" class="btn btn--ghost" id="ctaContact"></a>
-          </div>
-        </div>
 
-        <!-- интерактивный терминал — главная фишка -->
-        <div class="term" id="term">
-          <div class="term__bar">
-            <span class="term__dot term__dot--r"></span>
-            <span class="term__dot term__dot--y"></span>
-            <span class="term__dot term__dot--g"></span>
-            <span class="mono term__title">guest@kirillyat.ru:~</span>
+          <!-- интерактивный терминал — главная фишка -->
+          <div class="term" id="term">
+            <div class="term__bar">
+              <span class="term__dot term__dot--r"></span>
+              <span class="term__dot term__dot--y"></span>
+              <span class="term__dot term__dot--g"></span>
+              <span class="mono term__title">guest@kirillyat.ru:~</span>
+            </div>
+            <div class="term__body mono" id="termBody"></div>
+            <div class="term__input-row mono">
+              <span class="accent">$</span>
+              <input type="text" id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal input">
+            </div>
+            <div class="term__chips" id="termChips"></div>
           </div>
-          <div class="term__body mono" id="termBody"></div>
-          <div class="term__input-row mono">
-            <span class="accent">$</span>
-            <input type="text" id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal input">
-          </div>
-          <div class="term__chips" id="termChips"></div>
         </div>
       </div>
       <a class="hero__scroll mono" href="#about" aria-label="scroll down">
@@ -80,32 +90,42 @@
 
     <!-- ============ ABOUT / BENTO ============ -->
     <section class="section" id="about">
-      <h2 class="section__title reveal"><span class="section__num mono">01</span><span id="aboutTitle"></span></h2>
+      <span class="section__ghost" data-plx="0.06" aria-hidden="true">01</span>
+      <p class="section__overline mono reveal" id="aboutOver"></p>
+      <h2 class="section__title reveal" id="aboutTitle"></h2>
       <div class="bento" id="bentoGrid"></div>
     </section>
 
     <!-- ============ EXPERIENCE ============ -->
     <section class="section" id="experience">
-      <h2 class="section__title reveal"><span class="section__num mono">02</span><span id="expTitle"></span></h2>
+      <span class="section__ghost" data-plx="0.06" aria-hidden="true">02</span>
+      <p class="section__overline mono reveal" id="expOver"></p>
+      <h2 class="section__title reveal" id="expTitle"></h2>
       <div class="timeline" id="timeline"></div>
     </section>
 
     <!-- ============ SKILLS ============ -->
     <section class="section" id="skills">
-      <h2 class="section__title reveal"><span class="section__num mono">03</span><span id="skillsTitle"></span></h2>
+      <span class="section__ghost" data-plx="0.06" aria-hidden="true">03</span>
+      <p class="section__overline mono reveal" id="skillsOver"></p>
+      <h2 class="section__title reveal" id="skillsTitle"></h2>
       <div class="skills" id="skillsGrid"></div>
     </section>
 
     <!-- ============ MATERIALS ============ -->
     <section class="section" id="materials">
-      <h2 class="section__title reveal"><span class="section__num mono">04</span><span id="matTitle"></span></h2>
+      <span class="section__ghost" data-plx="0.06" aria-hidden="true">04</span>
+      <p class="section__overline mono reveal" id="matOver"></p>
+      <h2 class="section__title reveal" id="matTitle"></h2>
       <div class="filters reveal" id="matFilters"></div>
       <div class="materials" id="matList"></div>
     </section>
 
     <!-- ============ MENTORING ============ -->
     <section class="section" id="mentoring">
-      <h2 class="section__title reveal"><span class="section__num mono">05</span><span id="menTitle"></span></h2>
+      <span class="section__ghost" data-plx="0.06" aria-hidden="true">05</span>
+      <p class="section__overline mono reveal" id="menOver"></p>
+      <h2 class="section__title reveal" id="menTitle"></h2>
       <p class="mentoring__lead reveal" id="menLead"></p>
       <div class="mentoring">
         <div class="mentoring__points" id="menPoints"></div>
@@ -130,7 +150,9 @@
 
     <!-- ============ CONTACT ============ -->
     <section class="section section--contact" id="contact">
-      <h2 class="section__title reveal"><span class="section__num mono">06</span><span id="contactTitle"></span></h2>
+      <span class="section__ghost section__ghost--center" data-plx="0.06" aria-hidden="true">06</span>
+      <p class="section__overline mono reveal" id="contactOver"></p>
+      <h2 class="section__title reveal" id="contactTitle"></h2>
       <p class="contact__lead reveal" id="contactLead"></p>
       <button class="contact__email reveal" id="emailBtn">
         <span id="emailText"></span>
