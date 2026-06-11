@@ -3,8 +3,11 @@
    ============================================================ */
 (() => {
   const $ = (id) => document.getElementById(id);
-  let lang = localStorage.getItem("lang") || "ru";
+  const LANGS = ["ru", "en", "fr"];
+  let lang = localStorage.getItem("lang");
+  if (!LANGS.includes(lang)) lang = "ru";
   let typeTimer = null;
+  const nextLang = () => LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
 
   /* ---------- рендер контента из CONTENT[lang] ---------- */
   function render() {
@@ -14,7 +17,7 @@
     $("navLinks").innerHTML = t.nav
       .map((l) => `<a href="${l.href}">${l.label}</a>`)
       .join("");
-    $("langToggle").textContent = lang === "ru" ? "EN" : "RU";
+    $("langToggle").textContent = nextLang().toUpperCase();
 
     $("heroHello").textContent = t.hero.hello;
     $("heroName").textContent = t.hero.name;
@@ -243,7 +246,7 @@
 
   /* ---------- lang toggle ---------- */
   $("langToggle").addEventListener("click", () => {
-    lang = lang === "ru" ? "en" : "ru";
+    lang = nextLang();
     localStorage.setItem("lang", lang);
     render();
   });
