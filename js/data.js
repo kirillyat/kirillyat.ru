@@ -22,6 +22,16 @@ const CONTENT = {
       ctaContact: "Связаться",
       scroll: "скролль вниз",
     },
+    sun: {
+      title: "утренний свет",
+      hint: "потяни солнце — поменяется свет",
+      captions: [
+        "рассвет — город ещё спит",
+        "раннее утро — лучшее время для пробежки",
+        "утро — кофе и код",
+        "полдень — всё в самом разгаре",
+      ],
+    },
     about: {
       title: "Обо мне",
       bento: [
@@ -29,10 +39,10 @@ const CONTENT = {
           size: "wide",
           title: "Кто я",
           body:
-            "Инженер, которому интересно всё: от чистоты доменной модели до устройства продакшена. Люблю системы, которые легко читать, деплоить и чинить.",
+            "Инженер, которому интересно всё: от чистоты доменной модели до устройства продакшена. Люблю системы, которые легко читать, деплоить и чинить, — и утренние пробежки, на которых приходят лучшие решения.",
         },
         { size: "stat", value: "5+", label: "лет в разработке" }, // TODO: проверь цифру
-        { size: "stat", value: "∞", label: "выпитого кофе" },
+        { size: "stat", value: "∞", label: "утреннего кофе" },
         {
           size: "tall",
           title: "Сейчас",
@@ -46,8 +56,8 @@ const CONTENT = {
         },
         {
           size: "normal",
-          title: "База",
-          body: "Москва · UTC+3", // TODO: проверь город
+          title: "Ритм",
+          body: "Подъём до рассвета, бег вдоль реки, потом — код.",
         },
       ],
     },
@@ -153,27 +163,7 @@ const CONTENT = {
     },
     footer: {
       left: "© 2026 Кирилл Яценко",
-      hint: "нажми ` — фокус на терминал",
-    },
-    terminal: {
-      boot: [
-        { cmd: true, text: "whoami" },
-        { text: "Кирилл Яценко — software engineer. Бэкенд, лекции, менторство." },
-        { text: "набери `help` или кликни команду ниже ↓" },
-      ],
-      chips: ["help", "stack", "mentor", "matrix", "coffee"],
-      help: "команды: whoami · stack · cv · materials · mentor · contact · lang ru|en|fr · matrix · coffee · clear",
-      whoami: "Кирилл Яценко — software engineer. Бэкенд, лекции, менторство.",
-      stack: "Python · PostgreSQL · Kafka · Redis · Docker",
-      cv: "→ листаю к разделу «Опыт»",
-      materials: "→ листаю к разделу «Материалы»",
-      mentor: "→ листаю к разделу «Менторство»",
-      contact: "kirillyat@gmail.com · github.com/kirillyat",
-      matrix: "следуй за белым кроликом… 🐇",
-      coffee: "наливаю ☕ — без кофеина не компилируется",
-      langUsage: "использование: lang ru|en|fr",
-      langDone: "переключаю язык →",
-      unknown: "команда не найдена. набери `help`.",
+      hint: "потяни солнце наверху — изменится свет",
     },
   },
 
@@ -196,6 +186,16 @@ const CONTENT = {
       ctaContact: "Get in touch",
       scroll: "scroll down",
     },
+    sun: {
+      title: "morning light",
+      hint: "drag the sun — the light changes",
+      captions: [
+        "dawn — the city is still asleep",
+        "early morning — best time for a run",
+        "morning — coffee and code",
+        "noon — everything in full swing",
+      ],
+    },
     about: {
       title: "About",
       bento: [
@@ -203,10 +203,10 @@ const CONTENT = {
           size: "wide",
           title: "Who I am",
           body:
-            "An engineer curious about everything: from clean domain models to how production really works. I love systems that are easy to read, deploy and fix.",
+            "An engineer curious about everything: from clean domain models to how production really works. I love systems that are easy to read, deploy and fix — and morning runs, where the best solutions come from.",
         },
         { size: "stat", value: "5+", label: "years in software" },
-        { size: "stat", value: "∞", label: "coffee consumed" },
+        { size: "stat", value: "∞", label: "morning coffees" },
         {
           size: "tall",
           title: "Currently",
@@ -220,8 +220,8 @@ const CONTENT = {
         },
         {
           size: "normal",
-          title: "Based in",
-          body: "Moscow · UTC+3",
+          title: "Rhythm",
+          body: "Up before sunrise, a run along the river, then — code.",
         },
       ],
     },
@@ -327,27 +327,7 @@ const CONTENT = {
     },
     footer: {
       left: "© 2026 Kirill Yatsenko",
-      hint: "press ` — focus the terminal",
-    },
-    terminal: {
-      boot: [
-        { cmd: true, text: "whoami" },
-        { text: "Kirill Yatsenko — software engineer. Backend, lectures, mentoring." },
-        { text: "type `help` or click a command below ↓" },
-      ],
-      chips: ["help", "stack", "mentor", "matrix", "coffee"],
-      help: "commands: whoami · stack · cv · materials · mentor · contact · lang ru|en|fr · matrix · coffee · clear",
-      whoami: "Kirill Yatsenko — software engineer. Backend, lectures, mentoring.",
-      stack: "Python · PostgreSQL · Kafka · Redis · Docker",
-      cv: "→ scrolling to Experience",
-      materials: "→ scrolling to Materials",
-      mentor: "→ scrolling to Mentoring",
-      contact: "kirillyat@gmail.com · github.com/kirillyat",
-      matrix: "follow the white rabbit… 🐇",
-      coffee: "brewing ☕ — won't compile without caffeine",
-      langUsage: "usage: lang ru|en|fr",
-      langDone: "switching language →",
-      unknown: "command not found. type `help`.",
+      hint: "drag the sun up top — the light changes",
     },
   },
 
@@ -370,6 +350,16 @@ const CONTENT = {
       ctaContact: "Me contacter",
       scroll: "défiler",
     },
+    sun: {
+      title: "lumière du matin",
+      hint: "déplace le soleil — la lumière change",
+      captions: [
+        "l'aube — la ville dort encore",
+        "tôt le matin — le meilleur moment pour courir",
+        "le matin — café et code",
+        "midi — tout bat son plein",
+      ],
+    },
     about: {
       title: "À propos",
       bento: [
@@ -377,10 +367,10 @@ const CONTENT = {
           size: "wide",
           title: "Qui je suis",
           body:
-            "Un ingénieur curieux de tout : des modèles de domaine propres au fonctionnement réel de la production. J'aime les systèmes faciles à lire, à déployer et à réparer.",
+            "Un ingénieur curieux de tout : des modèles de domaine propres au fonctionnement réel de la production. J'aime les systèmes faciles à lire, à déployer et à réparer — et les courses matinales, d'où viennent les meilleures idées.",
         },
         { size: "stat", value: "5+", label: "ans de développement" },
-        { size: "stat", value: "∞", label: "cafés consommés" },
+        { size: "stat", value: "∞", label: "cafés du matin" },
         {
           size: "tall",
           title: "Actuellement",
@@ -394,8 +384,8 @@ const CONTENT = {
         },
         {
           size: "normal",
-          title: "Basé à",
-          body: "Moscou · UTC+3",
+          title: "Rythme",
+          body: "Debout avant l'aube, une course le long de la rivière, puis — le code.",
         },
       ],
     },
@@ -501,27 +491,7 @@ const CONTENT = {
     },
     footer: {
       left: "© 2026 Kirill Yatsenko",
-      hint: "appuie sur ` — focus sur le terminal",
-    },
-    terminal: {
-      boot: [
-        { cmd: true, text: "whoami" },
-        { text: "Kirill Yatsenko — software engineer. Backend, cours, mentorat." },
-        { text: "tape `help` ou clique une commande ci-dessous ↓" },
-      ],
-      chips: ["help", "stack", "mentor", "matrix", "coffee"],
-      help: "commandes : whoami · stack · cv · materials · mentor · contact · lang ru|en|fr · matrix · coffee · clear",
-      whoami: "Kirill Yatsenko — software engineer. Backend, cours, mentorat.",
-      stack: "Python · PostgreSQL · Kafka · Redis · Docker",
-      cv: "→ défilement vers Expérience",
-      materials: "→ défilement vers Ressources",
-      mentor: "→ défilement vers Mentorat",
-      contact: "kirillyat@gmail.com · github.com/kirillyat",
-      matrix: "suis le lapin blanc… 🐇",
-      coffee: "préparation du café ☕ — rien ne compile sans caféine",
-      langUsage: "usage : lang ru|en|fr",
-      langDone: "changement de langue →",
-      unknown: "commande introuvable. tape `help`.",
+      hint: "déplace le soleil en haut — la lumière change",
     },
   },
 };

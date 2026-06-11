@@ -7,14 +7,19 @@
   let lang = localStorage.getItem("lang");
   if (!LANGS.includes(lang)) lang = "ru";
   let typeTimer = null;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const mix = (c1, c2, t) => c1.map((v, i) => Math.round(lerp(v, c2[i], t)));
 
   /* ---------- рендер контента из CONTENT[lang] ---------- */
   function render() {
     const t = CONTENT[lang];
     document.documentElement.lang = lang;
 
-    $("navLinks").innerHTML = t.nav.map((l) => `<a href="${l.href}">${l.label}</a>`).join("");
+    $("navLinks").innerHTML =
+      `<span class="nav__blob" id="navBlob"></span>` +
+      t.nav.map((l) => `<a href="${l.href}">${l.label}</a>`).join("");
     updateLangSwitch();
+    navBlobInit();
 
     // оверлайны секций — из подписей навигации
     [["aboutOver", 0], ["expOver", 1], ["skillsOver", 2], ["matOver", 3], ["menOver", 4], ["contactOver", 5]]
@@ -26,6 +31,10 @@
     $("ctaMentor").textContent = t.hero.ctaMentor;
     $("ctaContact").textContent = t.hero.ctaContact;
     $("scrollLabel").textContent = t.hero.scroll;
+
+    $("sunTitle").textContent = t.sun.title;
+    $("sunHint").textContent = t.sun.hint;
+    updateSunCaption();
 
     // marquee: стек по кругу
     const words = t.skills.groups.flatMap((g) => g.items);
@@ -85,7 +94,6 @@
     $("footerLeft").textContent = t.footer.left;
     $("footerHint").textContent = t.footer.hint;
 
-    renderTermChips(t);
     observeReveals();
     startTypewriter(t.hero.roles);
     bindCards();
@@ -261,7 +269,7 @@
     lensPos.tx = e.clientX;
     lensPos.ty = e.clientY;
     if (!lensSeen) { lensSeen = true; lensPos.x = e.clientX; lensPos.y = e.clientY; lens.style.opacity = "1"; }
-    const interactive = e.target.closest("a, button, .tilt, input, select, textarea");
+    const interactive = e.target.closest("a, button, .tilt, input, select, textarea, .sun-card");
     lensPos.ts = interactive ? 1.45 : 1;
   });
   document.addEventListener("pointerleave", () => { lens.style.opacity = "0"; lensSeen = false; });
@@ -273,12 +281,15 @@
     requestAnimationFrame(lensLoop);
   }
 
-  /* ---------- nav: progress + active link + bg ---------- */
+  /* ---------- nav: прогресс с бегуном + active link + liquid blob ---------- */
   const nav = $("nav");
   const sections = ["about", "experience", "skills", "materials", "mentoring", "contact"];
+  let activeSection = "";
   window.addEventListener("scroll", () => {
     const h = document.documentElement;
-    $("progressBar").style.width = `${(h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100}%`;
+    const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    $("progressBar").style.width = `${pct}%`;
+    $("progressRunner").style.left = `${pct}%`;
     nav.classList.toggle("scrolled", h.scrollTop > 24);
 
     let current = "";
@@ -286,88 +297,148 @@
       const el = $(id);
       if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) current = id;
     }
-    document.querySelectorAll(".nav__links a").forEach((a) =>
-      a.classList.toggle("active", a.getAttribute("href") === `#${current}`)
-    );
+    if (current !== activeSection) {
+      activeSection = current;
+      document.querySelectorAll(".nav__links a").forEach((a) =>
+        a.classList.toggle("active", a.getAttribute("href") === `#${current}`)
+      );
+      navBlobTo(document.querySelector(".nav__links a.active"));
+    }
   }, { passive: true });
 
-  /* ---------- canvas: светлячки + matrix-режим ---------- */
+  /* ---------- liquid blob в навигации: пружинная физика ---------- */
+  const blobState = { x: 0, w: 60, vx: 0, vw: 0, tx: 0, tw: 60, on: false };
+  function navBlobTo(link) {
+    const blob = $("navBlob");
+    if (!link) { blob.style.opacity = "0"; blobState.on = false; return; }
+    blobState.tx = link.offsetLeft;
+    blobState.tw = link.offsetWidth;
+    if (!blobState.on) { blobState.x = blobState.tx; blobState.w = blobState.tw; blobState.on = true; }
+    blob.style.opacity = "1";
+  }
+  function navBlobInit() {
+    const links = document.querySelectorAll(".nav__links a");
+    links.forEach((a) => {
+      a.addEventListener("pointerenter", () => navBlobTo(a));
+    });
+    $("navLinks").addEventListener("pointerleave", () =>
+      navBlobTo(document.querySelector(".nav__links a.active"))
+    );
+  }
+  function blobLoop() {
+    const blob = $("navBlob");
+    if (blob && blobState.on) {
+      // пружина: бегунок перетекает с лёгким перехлёстом, как жидкость
+      const k = 0.16, d = 0.72;
+      blobState.vx = (blobState.vx + (blobState.tx - blobState.x) * k) * d;
+      blobState.vw = (blobState.vw + (blobState.tw - blobState.w) * k) * d;
+      blobState.x += blobState.vx;
+      blobState.w += blobState.vw;
+      // от скорости — лёгкое «растяжение» капли
+      const squish = Math.min(Math.abs(blobState.vx) * 0.012, 0.18);
+      blob.style.transform = `translateX(${blobState.x}px) scaleY(${1 - squish})`;
+      blob.style.width = `${blobState.w}px`;
+    }
+    requestAnimationFrame(blobLoop);
+  }
+
+  /* ---------- солнечный слайдер: тяни — меняется свет ---------- */
+  // t: 0 = рассвет (5:00), 1 = полдень (12:00)
+  let dayT = parseFloat(localStorage.getItem("dayT"));
+  if (isNaN(dayT)) dayT = 0.35;
+  const DAWN = { sky: [255, 190, 140], sun: [255, 150, 70], glow: 0.7 };
+  const NOON = { sky: [120, 180, 250], sun: [255, 226, 150], glow: 0.95 };
+
+  function updateSunScene() {
+    const t = dayT;
+    const sky = mix(DAWN.sky, NOON.sky, t);
+    const sun = mix(DAWN.sun, NOON.sun, t);
+    const glow = lerp(DAWN.glow, NOON.glow, t);
+    $("skyBlob").style.background =
+      `radial-gradient(ellipse, rgba(${sky.join(",")}, 0.5), transparent 65%)`;
+    $("sunBlob").style.background =
+      `radial-gradient(circle, rgba(${sun.join(",")}, ${glow * 0.6}), rgba(${sun.join(",")}, 0.14) 38%, transparent 62%)`;
+    $("sunBlob").style.left = `${lerp(-4, 34, t)}vmax`;
+    $("sunBlob").style.top = `${lerp(6, -22, t)}vmax`;
+
+    // солнце в карточке: по дуге от горизонта слева (рассвет) к зениту (полдень)
+    const a = ((170 - t * 80) * Math.PI) / 180;
+    $("sunDot").style.left = `${50 + 41 * Math.cos(a)}%`;
+    $("sunDot").style.bottom = `${-10 + 80 * Math.sin(a)}%`;
+
+    // время 5:00 → 12:00
+    const mins = Math.round(300 + t * 420);
+    $("sunTime").textContent =
+      `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
+    updateSunCaption();
+  }
+  function updateSunCaption() {
+    const caps = CONTENT[lang].sun.captions;
+    const idx = dayT < 0.18 ? 0 : dayT < 0.45 ? 1 : dayT < 0.75 ? 2 : 3;
+    $("sunCaption").textContent = caps[idx];
+  }
+
+  const sunSky = $("sunSky");
+  let sunDrag = false;
+  function sunFromEvent(e) {
+    const r = sunSky.getBoundingClientRect();
+    dayT = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    localStorage.setItem("dayT", dayT.toFixed(3));
+    updateSunScene();
+  }
+  $("sunCard").addEventListener("pointerdown", (e) => { sunDrag = true; sunFromEvent(e); });
+  window.addEventListener("pointermove", (e) => { if (sunDrag) sunFromEvent(e); });
+  window.addEventListener("pointerup", () => { sunDrag = false; });
+
+  /* ---------- canvas: пыльца в утреннем свете ---------- */
   const canvas = $("heroCanvas");
   const ctx = canvas.getContext("2d");
-  let fireflies = [];
-  let matrixUntil = 0;
-  let matrixCols = [];
+  let pollen = [];
   const mouse = { x: -9999, y: -9999 };
-  const MATRIX_GLYPHS = "アィウエオカキクケコサシスセソタチツテトナニヌネノ01<>=+*";
 
   function resizeCanvas() {
     canvas.width = canvas.offsetWidth * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;
     ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-    const count = Math.min(46, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 34000));
-    fireflies = Array.from({ length: count }, () => ({
+    const count = Math.min(40, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 38000));
+    pollen = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.offsetWidth,
       y: Math.random() * canvas.offsetHeight,
-      vx: (Math.random() - 0.5) * 0.16,
-      vy: (Math.random() - 0.5) * 0.16,
-      r: Math.random() * 1.8 + 0.8,
+      vy: -(0.08 + Math.random() * 0.2),
+      r: Math.random() * 2 + 1,
       phase: Math.random() * Math.PI * 2,
-      speed: 0.4 + Math.random() * 0.7,
-      warm: Math.random() < 0.25, // часть светлячков — сиреневые
+      speed: 0.3 + Math.random() * 0.6,
+      gold: Math.random() < 0.4,
     }));
-    matrixCols = Array.from({ length: Math.ceil(canvas.offsetWidth / 18) }, () => Math.random() * -50);
   }
 
-  function drawMatrix() {
-    const w = canvas.offsetWidth, h = canvas.offsetHeight;
-    ctx.fillStyle = "rgba(5, 8, 15, 0.18)";
-    ctx.fillRect(0, 0, w, h);
-    ctx.font = "14px JetBrains Mono, monospace";
-    matrixCols.forEach((y, i) => {
-      const ch = MATRIX_GLYPHS[(Math.random() * MATRIX_GLYPHS.length) | 0];
-      ctx.fillStyle = Math.random() > 0.95 ? "#dcefff" : "rgba(142, 197, 255, 0.7)";
-      ctx.fillText(ch, i * 18, y * 18);
-      matrixCols[i] = y * 18 > h && Math.random() > 0.97 ? 0 : y + 0.5;
-    });
-  }
-
-  function drawFireflies(now) {
-    if (Date.now() < matrixUntil) {
-      drawMatrix();
-      requestAnimationFrame(drawFireflies);
-      return;
-    }
+  function drawPollen(now) {
     const w = canvas.offsetWidth, h = canvas.offsetHeight;
     ctx.clearRect(0, 0, w, h);
     const t = now / 1000;
-    for (const f of fireflies) {
-      // плавное блуждание + лёгкий уход от курсора
-      const dx = f.x - mouse.x, dy = f.y - mouse.y;
+    for (const p of pollen) {
+      const dx = p.x - mouse.x, dy = p.y - mouse.y;
       const d = Math.hypot(dx, dy);
       if (d < 90 && d > 0) {
-        f.x += (dx / d) * 0.25;
-        f.y += (dy / d) * 0.25;
+        p.x += (dx / d) * 0.3;
+        p.y += (dy / d) * 0.3;
       }
-      f.x += f.vx + Math.sin(t * f.speed + f.phase) * 0.12;
-      f.y += f.vy + Math.cos(t * f.speed * 0.8 + f.phase) * 0.1;
-      if (f.x < -10) f.x = w + 10; if (f.x > w + 10) f.x = -10;
-      if (f.y < -10) f.y = h + 10; if (f.y > h + 10) f.y = -10;
+      p.x += Math.sin(t * p.speed + p.phase) * 0.2;
+      p.y += p.vy;
+      if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+      if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
 
-      const glow = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(t * f.speed * 1.6 + f.phase));
-      const color = f.warm ? "165, 180, 252" : "142, 197, 255";
-      const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 7);
-      grad.addColorStop(0, `rgba(${color}, ${glow})`);
+      const tw = 0.35 + 0.3 * (0.5 + 0.5 * Math.sin(t * p.speed * 1.4 + p.phase));
+      const color = p.gold ? "255, 200, 110" : "255, 255, 255";
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 5);
+      grad.addColorStop(0, `rgba(${color}, ${tw})`);
       grad.addColorStop(1, `rgba(${color}, 0)`);
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(f.x, f.y, f.r * 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = `rgba(${color}, ${Math.min(glow + 0.35, 0.9)})`;
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.r * 5, 0, Math.PI * 2);
       ctx.fill();
     }
-    requestAnimationFrame(drawFireflies);
+    requestAnimationFrame(drawPollen);
   }
 
   canvas.addEventListener("pointermove", (e) => {
@@ -393,7 +464,7 @@
   /* ---------- переключатель языков (свитч) ---------- */
   function updateLangSwitch() {
     const idx = LANGS.indexOf(lang);
-    $("langThumb").style.transform = `translateX(${idx * 46}px)`;
+    $("langThumb").style.transform = `translateX(${idx * 44}px)`;
     $("langSwitch").querySelectorAll("button").forEach((b) =>
       b.classList.toggle("active", b.dataset.lang === lang)
     );
@@ -403,125 +474,17 @@
     lang = l;
     localStorage.setItem("lang", lang);
     render();
-    bootTerminal(true);
   }
   $("langSwitch").querySelectorAll("button").forEach((b) =>
     b.addEventListener("click", () => setLang(b.dataset.lang))
   );
 
-  /* ---------- терминал в hero ---------- */
-  const termBody = $("termBody");
-  const termInput = $("termInput");
-  let bootTimers = [];
-
-  function termPrint(text, isCmd = false) {
-    const line = document.createElement("div");
-    line.className = "term__line";
-    if (isCmd) {
-      line.innerHTML = `<span class="accent">$</span> <span class="term__cmd"></span>`;
-      line.querySelector(".term__cmd").textContent = text;
-    } else {
-      line.textContent = text;
-    }
-    termBody.appendChild(line);
-    termBody.scrollTop = termBody.scrollHeight;
-  }
-
-  // автонабор строки в теле терминала, как будто печатает человек
-  function termTypeLine(text, isCmd, done) {
-    const line = document.createElement("div");
-    line.className = "term__line";
-    let target = line;
-    if (isCmd) {
-      line.innerHTML = `<span class="accent">$</span> <span class="term__cmd"></span>`;
-      target = line.querySelector(".term__cmd");
-    }
-    termBody.appendChild(line);
-    let i = 0;
-    const iv = setInterval(() => {
-      target.textContent = text.slice(0, ++i);
-      termBody.scrollTop = termBody.scrollHeight;
-      if (i >= text.length) { clearInterval(iv); done && done(); }
-    }, isCmd ? 65 : 10);
-    bootTimers.push(iv);
-  }
-
-  function bootTerminal(instant = false) {
-    bootTimers.forEach(clearInterval);
-    bootTimers = [];
-    termBody.innerHTML = "";
-    const lines = CONTENT[lang].terminal.boot;
-    if (instant) {
-      lines.forEach((l) => termPrint(l.text, l.cmd));
-      return;
-    }
-    let i = 0;
-    (function next() {
-      if (i >= lines.length) return;
-      const l = lines[i++];
-      termTypeLine(l.text, l.cmd, () => setTimeout(next, 420));
-    })();
-  }
-
-  function renderTermChips(t) {
-    $("termChips").innerHTML = t.terminal.chips
-      .map((c) => `<button class="term__chip mono" data-cmd="${c}">${c}</button>`)
-      .join("");
-    $("termChips").querySelectorAll(".term__chip").forEach((btn) =>
-      btn.addEventListener("click", () => runCommand(btn.dataset.cmd))
-    );
-  }
-
-  function runCommand(raw) {
-    const t = CONTENT[lang].terminal;
-    const [cmd, arg] = raw.trim().toLowerCase().split(/\s+/);
-    if (!cmd) return;
-    termPrint(raw, true);
-    switch (cmd) {
-      case "clear": termBody.innerHTML = ""; break;
-      case "help": termPrint(t.help); break;
-      case "whoami": termPrint(t.whoami); break;
-      case "stack": termPrint(t.stack); break;
-      case "contact": termPrint(t.contact); break;
-      case "cv": termPrint(t.cv); $("experience").scrollIntoView(); break;
-      case "materials": termPrint(t.materials); $("materials").scrollIntoView(); break;
-      case "mentor": termPrint(t.mentor); $("mentoring").scrollIntoView(); break;
-      case "coffee": termPrint(t.coffee); break;
-      case "matrix":
-        termPrint(t.matrix);
-        matrixUntil = Date.now() + 7000;
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        break;
-      case "lang":
-        if (LANGS.includes(arg)) { termPrint(t.langDone); setLang(arg); }
-        else termPrint(t.langUsage);
-        break;
-      default: termPrint(t.unknown);
-    }
-  }
-
-  termInput.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
-    const v = termInput.value;
-    termInput.value = "";
-    runCommand(v);
-  });
-
-  // ` из любого места — фокус на терминал
-  document.addEventListener("keydown", (e) => {
-    const tag = document.activeElement.tagName;
-    if (e.key === "`" && tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
-      e.preventDefault();
-      $("hero").scrollIntoView({ behavior: "smooth" });
-      termInput.focus({ preventScroll: true });
-    }
-  });
-
   /* ---------- init ---------- */
   render();
+  updateSunScene();
   resizeCanvas();
-  requestAnimationFrame(drawFireflies);
-  bootTerminal();
+  requestAnimationFrame(drawPollen);
+  requestAnimationFrame(blobLoop);
   if (!reducedMotion) {
     requestAnimationFrame(plxLoop);
     if (matchMedia("(pointer: fine)").matches) requestAnimationFrame(lensLoop);

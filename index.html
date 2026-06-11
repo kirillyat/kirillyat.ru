@@ -12,20 +12,31 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>❄</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>☀️</text></svg>">
 </head>
 <body>
-  <!-- северное сияние на фоне -->
-  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <!-- утренняя сцена: небо, солнце, река, трава -->
+  <div class="day" aria-hidden="true">
+    <span class="day__sky" id="skyBlob"></span>
+    <span class="day__sun" id="sunBlob"></span>
+    <span class="day__river"></span>
+    <span class="day__grass" id="grassBlob"></span>
+  </div>
   <div class="noise" aria-hidden="true"></div>
-  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <div class="progress" aria-hidden="true">
+    <span id="progressBar"></span>
+    <span class="progress__runner" id="progressRunner">🏃</span>
+  </div>
   <!-- стеклянная линза, следующая за курсором -->
   <div class="lens" id="lens" aria-hidden="true"></div>
 
+  <!-- liquid glass навигация -->
   <header class="nav" id="nav">
-    <a class="nav__logo" href="#top">k<span class="accent">.</span>yat</a>
-    <nav class="nav__links" id="navLinks"></nav>
-    <div class="nav__actions">
+    <div class="nav__bar">
+      <a class="nav__logo" href="#top">k<span class="accent">.</span>yat</a>
+      <nav class="nav__links" id="navLinks">
+        <span class="nav__blob" id="navBlob"></span>
+      </nav>
       <div class="lang-switch" id="langSwitch" role="tablist" aria-label="Language">
         <span class="lang-switch__thumb" id="langThumb"></span>
         <button data-lang="ru" role="tab">RU</button>
@@ -39,19 +50,13 @@
     <!-- ============ HERO ============ -->
     <section class="hero" id="hero">
       <canvas id="heroCanvas" aria-hidden="true"></canvas>
-      <!-- парящие стеклянные сферы -->
-      <div class="hero__orbs" aria-hidden="true">
-        <span class="orb orb--1" data-plx="-0.16"></span>
-        <span class="orb orb--2" data-plx="-0.28"></span>
-        <span class="orb orb--3" data-plx="-0.08"></span>
-      </div>
       <div class="hero__inner">
         <p class="hero__hello mono" id="heroHello"></p>
         <h1 class="hero__name" id="heroName" data-plx="-0.1"></h1>
         <div class="hero__row">
           <div class="hero__left">
             <div class="hero__role mono">
-              <span class="accent">$</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+              <span class="accent">▸</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
             </div>
             <p class="hero__tagline" id="heroTagline"></p>
             <div class="hero__cta">
@@ -60,20 +65,19 @@
             </div>
           </div>
 
-          <!-- интерактивный терминал — главная фишка -->
-          <div class="term" id="term">
-            <div class="term__bar">
-              <span class="term__dot term__dot--r"></span>
-              <span class="term__dot term__dot--y"></span>
-              <span class="term__dot term__dot--g"></span>
-              <span class="mono term__title">guest@kirillyat.ru:~</span>
+          <!-- интерактивное солнце: тяни — меняется свет страницы -->
+          <div class="sun-card" id="sunCard">
+            <p class="sun-card__title mono" id="sunTitle"></p>
+            <div class="sun-card__sky" id="sunSky">
+              <div class="sun-card__arc"></div>
+              <div class="sun-card__sun" id="sunDot"></div>
+              <div class="sun-card__horizon"></div>
             </div>
-            <div class="term__body mono" id="termBody"></div>
-            <div class="term__input-row mono">
-              <span class="accent">$</span>
-              <input type="text" id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal input">
+            <div class="sun-card__meta">
+              <span class="sun-card__time mono" id="sunTime">06:30</span>
+              <span class="sun-card__caption" id="sunCaption"></span>
             </div>
-            <div class="term__chips" id="termChips"></div>
+            <p class="sun-card__hint mono" id="sunHint"></p>
           </div>
         </div>
       </div>
