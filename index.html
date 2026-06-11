@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Кирилл Яценко — Software Engineer</title>
-  <meta name="description" content="Кирилл Яценко — software engineer. Бэкенд, инфраструктура, лекции и менторство.">
+  <meta name="description" content="Кирилл Яценко — software engineer. Бэкенд, лекции, статьи и менторство.">
   <meta property="og:title" content="Кирилл Яценко — Software Engineer">
-  <meta property="og:description" content="Бэкенд, инфраструктура, лекции и менторство.">
+  <meta property="og:description" content="Бэкенд, лекции, статьи и менторство.">
   <meta property="og:url" content="https://kirillyat.ru">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,6 @@
     <nav class="nav__links" id="navLinks"></nav>
     <div class="nav__actions">
       <button class="lang-toggle" id="langToggle" aria-label="Switch language">EN</button>
-      <button class="term-hint" id="termHint" title="нажми ` для терминала">&gt;_</button>
     </div>
   </header>
 
@@ -32,15 +31,33 @@
     <section class="hero" id="hero">
       <canvas id="heroCanvas" aria-hidden="true"></canvas>
       <div class="hero__inner">
-        <p class="hero__hello mono" id="heroHello"></p>
-        <h1 class="hero__name" id="heroName"></h1>
-        <div class="hero__role mono">
-          <span class="accent">$</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+        <div class="hero__left">
+          <p class="hero__hello mono" id="heroHello"></p>
+          <h1 class="hero__name" id="heroName"></h1>
+          <div class="hero__role mono">
+            <span class="accent">$</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+          </div>
+          <p class="hero__tagline" id="heroTagline"></p>
+          <div class="hero__cta">
+            <a href="#mentoring" class="btn btn--primary magnetic" id="ctaMentor"></a>
+            <a href="#contact" class="btn btn--ghost magnetic" id="ctaContact"></a>
+          </div>
         </div>
-        <p class="hero__tagline" id="heroTagline"></p>
-        <div class="hero__cta">
-          <a href="#contact" class="btn btn--primary magnetic" id="ctaContact"></a>
-          <a href="#experience" class="btn btn--ghost magnetic" id="ctaCv"></a>
+
+        <!-- интерактивный терминал — главная фишка -->
+        <div class="term" id="term">
+          <div class="term__bar">
+            <span class="term__dot term__dot--r"></span>
+            <span class="term__dot term__dot--y"></span>
+            <span class="term__dot term__dot--g"></span>
+            <span class="mono term__title">guest@kirillyat.ru:~</span>
+          </div>
+          <div class="term__body mono" id="termBody"></div>
+          <div class="term__input-row mono">
+            <span class="accent">$</span>
+            <input type="text" id="termInput" autocomplete="off" spellcheck="false" aria-label="terminal input">
+          </div>
+          <div class="term__chips" id="termChips"></div>
         </div>
       </div>
       <a class="hero__scroll mono" href="#about" aria-label="scroll down">
@@ -49,33 +66,64 @@
       </a>
     </section>
 
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track" id="marqueeTrack"></div>
+    </div>
+
     <!-- ============ ABOUT / BENTO ============ -->
     <section class="section" id="about">
-      <h2 class="section__title reveal"><span class="section__num mono">01</span><span id="aboutTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">01</span><span class="scramble" id="aboutTitle"></span></h2>
       <div class="bento" id="bentoGrid"></div>
     </section>
 
     <!-- ============ EXPERIENCE ============ -->
     <section class="section" id="experience">
-      <h2 class="section__title reveal"><span class="section__num mono">02</span><span id="expTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">02</span><span class="scramble" id="expTitle"></span></h2>
       <div class="timeline" id="timeline"></div>
     </section>
 
     <!-- ============ SKILLS ============ -->
     <section class="section" id="skills">
-      <h2 class="section__title reveal"><span class="section__num mono">03</span><span id="skillsTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">03</span><span class="scramble" id="skillsTitle"></span></h2>
       <div class="skills" id="skillsGrid"></div>
     </section>
 
-    <!-- ============ TALKS ============ -->
-    <section class="section" id="talks">
-      <h2 class="section__title reveal"><span class="section__num mono">04</span><span id="talksTitle"></span></h2>
-      <div class="talks" id="talksList"></div>
+    <!-- ============ MATERIALS ============ -->
+    <section class="section" id="materials">
+      <h2 class="section__title reveal"><span class="section__num mono">04</span><span class="scramble" id="matTitle"></span></h2>
+      <div class="filters reveal" id="matFilters"></div>
+      <div class="materials" id="matList"></div>
+    </section>
+
+    <!-- ============ MENTORING ============ -->
+    <section class="section" id="mentoring">
+      <h2 class="section__title reveal"><span class="section__num mono">05</span><span class="scramble" id="menTitle"></span></h2>
+      <p class="mentoring__lead reveal" id="menLead"></p>
+      <div class="mentoring">
+        <div class="mentoring__points" id="menPoints"></div>
+        <form class="mentoring__form reveal" id="menForm">
+          <div class="field">
+            <label class="mono" for="mfName" id="mfNameLabel"></label>
+            <input type="text" id="mfName" required>
+          </div>
+          <div class="field">
+            <label class="mono" for="mfGoal" id="mfGoalLabel"></label>
+            <select id="mfGoal"></select>
+          </div>
+          <div class="field">
+            <label class="mono" for="mfMsg" id="mfMsgLabel"></label>
+            <textarea id="mfMsg" rows="4"></textarea>
+          </div>
+          <button type="submit" class="btn btn--primary" id="mfSubmit"></button>
+          <p class="mentoring__hint mono" id="mfHint"></p>
+        </form>
+      </div>
     </section>
 
     <!-- ============ CONTACT ============ -->
     <section class="section section--contact" id="contact">
-      <h2 class="section__title reveal"><span class="section__num mono">05</span><span id="contactTitle"></span></h2>
+      <h2 class="section__title reveal"><span class="section__num mono">06</span><span class="scramble" id="contactTitle"></span></h2>
       <p class="contact__lead reveal" id="contactLead"></p>
       <button class="contact__email reveal magnetic" id="emailBtn">
         <span id="emailText"></span>
@@ -89,24 +137,6 @@
     <span class="mono" id="footerLeft"></span>
     <span class="mono footer__hint" id="footerHint"></span>
   </footer>
-
-  <!-- ============ TERMINAL EASTER EGG ============ -->
-  <div class="terminal" id="terminal" hidden>
-    <div class="terminal__window">
-      <div class="terminal__bar">
-        <span class="terminal__dot terminal__dot--r"></span>
-        <span class="terminal__dot terminal__dot--y"></span>
-        <span class="terminal__dot terminal__dot--g"></span>
-        <span class="mono terminal__title">kirillyat.ru — zsh</span>
-        <button class="terminal__close" id="termClose">✕</button>
-      </div>
-      <div class="terminal__body mono" id="termBody"></div>
-      <div class="terminal__input-row mono">
-        <span class="accent">guest@kirillyat.ru&nbsp;$</span>
-        <input type="text" id="termInput" autocomplete="off" spellcheck="false">
-      </div>
-    </div>
-  </div>
 
   <script src="js/data.js"></script>
   <script src="js/main.js"></script>

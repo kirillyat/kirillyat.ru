@@ -9,22 +9,46 @@
   let typeTimer = null;
   const nextLang = () => LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
 
+  /* ---------- scramble-эффект для заголовков ---------- */
+  const SCRAMBLE_CHARS = "!<>-_\\/[]{}=+*^?#";
+  function scramble(el, finalText) {
+    if (el.dataset.scrambling) return;
+    el.dataset.scrambling = "1";
+    let frame = 0;
+    const iv = setInterval(() => {
+      frame++;
+      const done = frame / 2;
+      el.textContent = [...finalText]
+        .map((c, i) => (c === "\n" || c === " " || i < done ? c : SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0]))
+        .join("");
+      if (done >= finalText.length) {
+        clearInterval(iv);
+        el.textContent = finalText;
+        delete el.dataset.scrambling;
+      }
+    }, 28);
+  }
+
   /* ---------- рендер контента из CONTENT[lang] ---------- */
   function render() {
     const t = CONTENT[lang];
     document.documentElement.lang = lang;
 
-    $("navLinks").innerHTML = t.nav
-      .map((l) => `<a href="${l.href}">${l.label}</a>`)
-      .join("");
+    $("navLinks").innerHTML = t.nav.map((l) => `<a href="${l.href}">${l.label}</a>`).join("");
     $("langToggle").textContent = nextLang().toUpperCase();
 
     $("heroHello").textContent = t.hero.hello;
-    $("heroName").textContent = t.hero.name;
+    scramble($("heroName"), t.hero.name);
     $("heroTagline").textContent = t.hero.tagline;
+    $("ctaMentor").textContent = t.hero.ctaMentor;
     $("ctaContact").textContent = t.hero.ctaContact;
-    $("ctaCv").textContent = t.hero.ctaCv;
     $("scrollLabel").textContent = t.hero.scroll;
+
+    // marquee: стек по кругу
+    const words = t.skills.groups.flatMap((g) => g.items);
+    $("marqueeTrack").innerHTML = [...words, ...words]
+      .map((w) => `<span>${w}<i class="accent"> ✦ </i></span>`)
+      .join("");
 
     $("aboutTitle").textContent = t.about.title;
     $("bentoGrid").innerHTML = t.about.bento
@@ -33,10 +57,10 @@
           c.size === "wide" ? " bento__card--wide" :
           c.size === "tall" ? " bento__card--tall" : "";
         if (c.size === "stat") {
-          return `<div class="bento__card reveal"><div class="bento__value">${c.value}</div><div class="bento__label">${c.label}</div></div>`;
+          return `<div class="bento__card tilt reveal"><div class="bento__value" data-count="${c.value}">${c.value}</div><div class="bento__label">${c.label}</div></div>`;
         }
         const status = c.status ? `<span class="bento__status">${c.status}</span>` : "";
-        return `<div class="bento__card${cls} reveal"><div><div class="bento__title">${c.title}</div><div class="bento__body">${c.body}</div></div>${status}</div>`;
+        return `<div class="bento__card tilt${cls} reveal"><div><div class="bento__title">${c.title}</div><div class="bento__body">${c.body}</div></div>${status}</div>`;
       })
       .join("");
 
@@ -57,26 +81,15 @@
     $("skillsGrid").innerHTML = t.skills.groups
       .map(
         (g) => `
-        <div class="skills__group reveal">
+        <div class="skills__group tilt reveal">
           <div class="skills__name">${g.name}</div>
           <div class="skills__items">${g.items.map((x) => `<span class="tag">${x}</span>`).join("")}</div>
         </div>`
       )
       .join("");
 
-    $("talksTitle").textContent = t.talks.title;
-    $("talksList").innerHTML = t.talks.items
-      .map(
-        (i) => `
-        <div class="talks__item reveal">
-          <div>
-            <div class="talks__title">${i.title}</div>
-            <div class="talks__desc">${i.desc}</div>
-          </div>
-          <span class="talks__tag">${i.tag}</span>
-        </div>`
-      )
-      .join("");
+    renderMaterials(t);
+    renderMentoring(t);
 
     $("contactTitle").textContent = t.contact.title;
     $("contactLead").textContent = t.contact.lead;
@@ -89,10 +102,85 @@
     $("footerLeft").textContent = t.footer.left;
     $("footerHint").textContent = t.footer.hint;
 
+    renderTermChips(t);
     observeReveals();
     startTypewriter(t.hero.roles);
-    bindCardGlow();
+    bindCards();
   }
+
+  /* ---------- материалы: карточки + фильтры ---------- */
+  let matFilter = "all";
+  function renderMaterials(t) {
+    $("matTitle").textContent = t.materials.title;
+    const types = Object.keys(t.materials.types);
+    $("matFilters").innerHTML = ["all", ...types]
+      .map(
+        (f) =>
+          `<button class="filters__btn mono${f === matFilter ? " active" : ""}" data-filter="${f}">
+            ${f === "all" ? t.materials.filterAll : t.materials.types[f]}
+          </button>`
+      )
+      .join("");
+    $("matList").innerHTML = t.materials.items
+      .map((m) => {
+        const hidden = matFilter !== "all" && m.type !== matFilter;
+        const badge = m.ready
+          ? `<span class="mat__tag mono">${t.materials.types[m.type]}</span>`
+          : `<span class="mat__tag mat__tag--soon mono">${t.materials.types[m.type]} · ${t.materials.soon}</span>`;
+        return `
+        <div class="mat__card tilt reveal${m.ready ? "" : " mat__card--soon"}${hidden ? " hidden" : ""}" data-type="${m.type}">
+          <div>
+            <div class="mat__title">${m.title}</div>
+            <div class="mat__desc">${m.desc}</div>
+          </div>
+          ${badge}
+        </div>`;
+      })
+      .join("");
+
+    $("matFilters").querySelectorAll(".filters__btn").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        matFilter = btn.dataset.filter;
+        renderMaterials(CONTENT[lang]);
+        observeReveals();
+        bindCards();
+      })
+    );
+  }
+
+  /* ---------- менторство: пойнты + форма записи ---------- */
+  function renderMentoring(t) {
+    $("menTitle").textContent = t.mentoring.title;
+    $("menLead").textContent = t.mentoring.lead;
+    $("menPoints").innerHTML = t.mentoring.points
+      .map(
+        (p, i) => `
+        <div class="mentoring__point tilt reveal">
+          <span class="mentoring__num mono">0${i + 1}</span>
+          <div>
+            <div class="mentoring__ptitle">${p.title}</div>
+            <div class="mentoring__pdesc">${p.desc}</div>
+          </div>
+        </div>`
+      )
+      .join("");
+    const f = t.mentoring.form;
+    $("mfNameLabel").textContent = f.nameLabel;
+    $("mfGoalLabel").textContent = f.goalLabel;
+    $("mfGoal").innerHTML = f.goals.map((g) => `<option>${g}</option>`).join("");
+    $("mfMsgLabel").textContent = f.msgLabel;
+    $("mfMsg").placeholder = f.msgPh;
+    $("mfSubmit").textContent = f.submit;
+    $("mfHint").textContent = f.hint;
+  }
+
+  $("menForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const t = CONTENT[lang];
+    const subject = `${t.mentoring.form.mailSubject} — ${$("mfName").value}`;
+    const body = `${$("mfGoalLabel").textContent}: ${$("mfGoal").value}\n\n${$("mfMsg").value}`;
+    location.href = `mailto:${t.contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
 
   /* ---------- typewriter ---------- */
   function startTypewriter(words) {
@@ -111,31 +199,59 @@
     tick();
   }
 
-  /* ---------- scroll reveals ---------- */
+  /* ---------- scroll reveals (+ scramble заголовков, счётчики) ---------- */
   let observer = null;
   function observeReveals() {
     if (observer) observer.disconnect();
     observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("visible")),
+      (entries) =>
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("visible");
+          const sc = e.target.querySelector(".scramble");
+          if (sc) scramble(sc, sc.textContent);
+          const cnt = e.target.querySelector("[data-count]");
+          if (cnt) animateCounter(cnt);
+        }),
       { threshold: 0.12 }
     );
     document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
   }
 
-  /* ---------- card glow follows cursor ---------- */
-  function bindCardGlow() {
-    document.querySelectorAll(".bento__card").forEach((card) => {
+  function animateCounter(el) {
+    const target = el.dataset.count;
+    const num = parseInt(target, 10);
+    if (isNaN(num) || el.dataset.counted) return;
+    el.dataset.counted = "1";
+    const suffix = target.replace(String(num), "");
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / 1200, 1);
+      el.textContent = Math.round(num * (1 - Math.pow(1 - p, 3))) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- карточки: glow за курсором + 3D-наклон ---------- */
+  function bindCards() {
+    document.querySelectorAll(".tilt").forEach((card) => {
       card.addEventListener("pointermove", (e) => {
         const r = card.getBoundingClientRect();
-        card.style.setProperty("--mx", `${e.clientX - r.left}px`);
-        card.style.setProperty("--my", `${e.clientY - r.top}px`);
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        card.style.setProperty("--mx", `${x}px`);
+        card.style.setProperty("--my", `${y}px`);
+        const rx = ((y / r.height) - 0.5) * -7;
+        const ry = ((x / r.width) - 0.5) * 7;
+        card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg)`;
       });
+      card.addEventListener("pointerleave", () => { card.style.transform = ""; });
     });
   }
 
   /* ---------- nav: progress + active link + bg ---------- */
   const nav = $("nav");
-  const sections = ["about", "experience", "skills", "talks", "contact"];
+  const sections = ["about", "experience", "skills", "materials", "mentoring", "contact"];
   window.addEventListener("scroll", () => {
     const h = document.documentElement;
     $("progressBar").style.width = `${(h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100}%`;
@@ -167,11 +283,14 @@
     });
   });
 
-  /* ---------- canvas: constellation particles ---------- */
+  /* ---------- canvas: частицы + matrix-режим ---------- */
   const canvas = $("heroCanvas");
   const ctx = canvas.getContext("2d");
   let particles = [];
+  let matrixUntil = 0;
+  let matrixCols = [];
   const mouse = { x: -9999, y: -9999 };
+  const MATRIX_GLYPHS = "アィウエオカキクケコサシスセソタチツテトナニヌネノ01<>=+*";
 
   function resizeCanvas() {
     canvas.width = canvas.offsetWidth * devicePixelRatio;
@@ -185,9 +304,28 @@
       vy: (Math.random() - 0.5) * 0.35,
       r: Math.random() * 1.6 + 0.4,
     }));
+    matrixCols = Array.from({ length: Math.ceil(canvas.offsetWidth / 18) }, () => Math.random() * -50);
+  }
+
+  function drawMatrix() {
+    const w = canvas.offsetWidth, h = canvas.offsetHeight;
+    ctx.fillStyle = "rgba(10, 10, 15, 0.18)";
+    ctx.fillRect(0, 0, w, h);
+    ctx.font = "14px JetBrains Mono, monospace";
+    matrixCols.forEach((y, i) => {
+      const ch = MATRIX_GLYPHS[(Math.random() * MATRIX_GLYPHS.length) | 0];
+      ctx.fillStyle = Math.random() > 0.95 ? "#eaffa0" : "rgba(214, 255, 63, 0.75)";
+      ctx.fillText(ch, i * 18, y * 18);
+      matrixCols[i] = y * 18 > h && Math.random() > 0.97 ? 0 : y + 0.6;
+    });
   }
 
   function drawParticles() {
+    if (Date.now() < matrixUntil) {
+      drawMatrix();
+      requestAnimationFrame(drawParticles);
+      return;
+    }
     const w = canvas.offsetWidth, h = canvas.offsetHeight;
     ctx.clearRect(0, 0, w, h);
     for (const p of particles) {
@@ -207,7 +345,6 @@
       ctx.fillStyle = "rgba(214, 255, 63, 0.5)";
       ctx.fill();
     }
-    // линии между близкими частицами
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
         const a = particles[i], b = particles[j];
@@ -245,22 +382,25 @@
   });
 
   /* ---------- lang toggle ---------- */
-  $("langToggle").addEventListener("click", () => {
-    lang = nextLang();
+  function setLang(l) {
+    lang = l;
     localStorage.setItem("lang", lang);
     render();
-  });
+    bootTerminal(true);
+  }
+  $("langToggle").addEventListener("click", () => setLang(nextLang()));
 
-  /* ---------- terminal easter egg ---------- */
-  const terminal = $("terminal");
+  /* ---------- терминал в hero ---------- */
   const termBody = $("termBody");
   const termInput = $("termInput");
+  let bootTimers = [];
 
   function termPrint(text, isCmd = false) {
     const line = document.createElement("div");
+    line.className = "term__line";
     if (isCmd) {
-      line.innerHTML = `<span class="accent">$</span> <span class="cmd"></span>`;
-      line.querySelector(".cmd").textContent = text;
+      line.innerHTML = `<span class="accent">$</span> <span class="term__cmd"></span>`;
+      line.querySelector(".term__cmd").textContent = text;
     } else {
       line.textContent = text;
     }
@@ -268,40 +408,99 @@
     termBody.scrollTop = termBody.scrollHeight;
   }
 
-  function openTerminal() {
-    terminal.hidden = false;
-    termBody.innerHTML = "";
-    termPrint(CONTENT[lang].terminal.welcome);
-    termInput.focus();
+  // автонабор строки в теле терминала, как будто печатает человек
+  function termTypeLine(text, isCmd, done) {
+    const line = document.createElement("div");
+    line.className = "term__line";
+    let target = line;
+    if (isCmd) {
+      line.innerHTML = `<span class="accent">$</span> <span class="term__cmd"></span>`;
+      target = line.querySelector(".term__cmd");
+    }
+    termBody.appendChild(line);
+    let i = 0;
+    const iv = setInterval(() => {
+      target.textContent = text.slice(0, ++i);
+      termBody.scrollTop = termBody.scrollHeight;
+      if (i >= text.length) { clearInterval(iv); done && done(); }
+    }, isCmd ? 55 : 8);
+    bootTimers.push(iv);
   }
-  function closeTerminal() { terminal.hidden = true; }
+
+  function bootTerminal(instant = false) {
+    bootTimers.forEach(clearInterval);
+    bootTimers = [];
+    termBody.innerHTML = "";
+    const lines = CONTENT[lang].terminal.boot;
+    if (instant) {
+      lines.forEach((l) => termPrint(l.text, l.cmd));
+      return;
+    }
+    let i = 0;
+    (function next() {
+      if (i >= lines.length) return;
+      const l = lines[i++];
+      termTypeLine(l.text, l.cmd, () => setTimeout(next, 350));
+    })();
+  }
+
+  function renderTermChips(t) {
+    $("termChips").innerHTML = t.terminal.chips
+      .map((c) => `<button class="term__chip mono" data-cmd="${c}">${c}</button>`)
+      .join("");
+    $("termChips").querySelectorAll(".term__chip").forEach((btn) =>
+      btn.addEventListener("click", () => runCommand(btn.dataset.cmd))
+    );
+  }
+
+  function runCommand(raw) {
+    const t = CONTENT[lang].terminal;
+    const [cmd, arg] = raw.trim().toLowerCase().split(/\s+/);
+    if (!cmd) return;
+    termPrint(raw, true);
+    switch (cmd) {
+      case "clear": termBody.innerHTML = ""; break;
+      case "help": termPrint(t.help); break;
+      case "whoami": termPrint(t.whoami); break;
+      case "stack": termPrint(t.stack); break;
+      case "contact": termPrint(t.contact); break;
+      case "cv": termPrint(t.cv); $("experience").scrollIntoView(); break;
+      case "materials": termPrint(t.materials); $("materials").scrollIntoView(); break;
+      case "mentor": termPrint(t.mentor); $("mentoring").scrollIntoView(); break;
+      case "coffee": termPrint(t.coffee); break;
+      case "matrix":
+        termPrint(t.matrix);
+        matrixUntil = Date.now() + 7000;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        break;
+      case "lang":
+        if (LANGS.includes(arg)) { termPrint(t.langDone); setLang(arg); }
+        else termPrint(t.langUsage);
+        break;
+      default: termPrint(t.unknown);
+    }
+  }
 
   termInput.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
-    const cmd = termInput.value.trim().toLowerCase();
+    const v = termInput.value;
     termInput.value = "";
-    if (!cmd) return;
-    termPrint(cmd, true);
-    const t = CONTENT[lang].terminal;
-    if (cmd === "clear") { termBody.innerHTML = ""; return; }
-    if (cmd === "exit") { closeTerminal(); return; }
-    termPrint(t[cmd] || t.unknown);
+    runCommand(v);
   });
 
+  // ` из любого места — фокус на терминал
   document.addEventListener("keydown", (e) => {
-    if (e.key === "`" && terminal.hidden && document.activeElement !== termInput) {
+    const tag = document.activeElement.tagName;
+    if (e.key === "`" && tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
       e.preventDefault();
-      openTerminal();
-    } else if (e.key === "Escape" && !terminal.hidden) {
-      closeTerminal();
+      $("hero").scrollIntoView({ behavior: "smooth" });
+      termInput.focus({ preventScroll: true });
     }
   });
-  $("termHint").addEventListener("click", openTerminal);
-  $("termClose").addEventListener("click", closeTerminal);
-  terminal.addEventListener("click", (e) => { if (e.target === terminal) closeTerminal(); });
 
   /* ---------- init ---------- */
   render();
   resizeCanvas();
   drawParticles();
+  bootTerminal();
 })();
