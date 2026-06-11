@@ -134,6 +134,13 @@ a { color: inherit; text-decoration: none; }
   -webkit-backdrop-filter: blur(26px) saturate(200%);
   box-shadow: var(--glass-edge), var(--glass-shadow);
 }
+/* настоящее преломление: фон за стеклом слегка изгибается
+   (SVG displacement; класс ставит JS только в Chromium) */
+html.refract .bento__card, html.refract .skills__group, html.refract .mat__card,
+html.refract .mentoring__point, html.refract .mentoring__form, html.refract .sun-card,
+html.refract .nav__bar {
+  backdrop-filter: blur(22px) saturate(200%) url(#lg-refract);
+}
 
 /* преломляющая кромка: тонкое кольцо света по периметру стекла —
    градиентный ободок виден только в 1.5px-зоне между двумя масками */
@@ -235,13 +242,7 @@ a { color: inherit; text-decoration: none; }
   max-width: var(--max-w); width: 100%;
   padding: 130px 32px 0;
 }
-.hero__row {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 56px;
-  align-items: start;
-  margin-top: 40px;
-}
+.hero__below { margin-top: 40px; max-width: 640px; }
 .hero__hello {
   color: var(--text-dim); font-size: 15px; margin-bottom: 22px;
   animation: riseIn 1.2s var(--ease) backwards;
@@ -312,11 +313,51 @@ a { color: inherit; text-decoration: none; }
   animation: scrollDrop 2.6s var(--ease) infinite;
 }
 
+/* ---------- кнопка света дня в навигации + всплывающее окно ---------- */
+.sun-nav { position: relative; }
+.sun-nav__btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--chip-bg); border: 1px solid var(--chip-border);
+  cursor: pointer;
+  transition: box-shadow 0.35s, transform 0.35s var(--ease);
+}
+.sun-nav__btn:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(20, 45, 85, 0.18); }
+.sun-nav__icon {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3c4, #ffb547 65%, #ff9d3d);
+  box-shadow: 0 0 8px rgba(255, 181, 71, 0.8);
+  transition: box-shadow 0.4s;
+}
+.sun-nav__icon.moon {
+  background: radial-gradient(circle at 38% 32%, #ffffff, #cfe0f5 55%, #9fb8d8);
+  box-shadow: 0 0 8px rgba(200, 220, 255, 0.7);
+}
+.sun-pop {
+  position: absolute; top: calc(100% + 14px); right: -8px;
+  width: 340px;
+  /* попап — это меню: подложка плотнее обычного стекла, чтобы
+     контент под ним не мешал читать (цвет ведёт тема) */
+  background-color: var(--pop-bg, rgba(255, 255, 255, 0.55));
+  opacity: 0; transform: translateY(-8px) scale(0.97);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.sun-nav.open .sun-pop {
+  opacity: 1; transform: none; pointer-events: auto;
+}
+@media (max-width: 700px) {
+  .sun-pop {
+    position: fixed; top: 72px; left: 16px; right: 16px; width: auto;
+  }
+}
+
 /* ---------- карточка солнца ---------- */
 .sun-card {
-  border-radius: var(--radius); padding: 26px 28px;
-  animation: riseIn 1.2s 0.55s var(--ease) backwards;
+  border-radius: 22px; padding: 20px 22px;
   cursor: grab; user-select: none; touch-action: none;
+  text-align: left;
 }
 .sun-card:active { cursor: grabbing; }
 .sun-card__title {
@@ -652,18 +693,19 @@ a { color: inherit; text-decoration: none; }
 }
 .footer__hint { opacity: 0.7; }
 
-/* ---------- стеклянная линза за курсором ---------- */
+/* ---------- стеклянная линза за курсором ----------
+   без blur: ничего не мутит и не мешает читать. в покое — едва
+   заметное колечко, над интерактивом вырастает в линзу */
 .lens {
   position: fixed; left: 0; top: 0; z-index: 95;
-  width: 92px; height: 92px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   pointer-events: none;
-  backdrop-filter: blur(2.5px) saturate(170%) brightness(1.03);
-  -webkit-backdrop-filter: blur(2.5px) saturate(170%) brightness(1.03);
+  backdrop-filter: saturate(150%) brightness(1.05);
+  -webkit-backdrop-filter: saturate(150%) brightness(1.05);
   border: 1px solid var(--glass-border);
   box-shadow:
     inset 0 1px 0 var(--spec),
-    inset -10px -10px 26px var(--accent-dim),
-    0 14px 40px rgba(20, 45, 85, 0.16);
+    inset -4px -4px 12px var(--accent-dim);
   opacity: 0;
   transition: opacity 0.5s;
   will-change: transform;
@@ -694,7 +736,6 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 1000px) {
-  .hero__row { grid-template-columns: 1fr; gap: 44px; }
   .hero__inner { padding-top: 130px; }
   .hero { padding-bottom: 160px; }
   .hero__name { font-size: clamp(48px, 12vw, 96px); letter-spacing: -3px; }

@@ -271,14 +271,14 @@
     lensPos.ty = e.clientY;
     if (!lensSeen) { lensSeen = true; lensPos.x = e.clientX; lensPos.y = e.clientY; lens.style.opacity = "1"; }
     const interactive = e.target.closest("a, button, .tilt, input, select, textarea, .sun-card");
-    lensPos.ts = interactive ? 1.45 : 1;
+    lensPos.ts = interactive ? 2.3 : 1;
   });
   document.addEventListener("pointerleave", () => { lens.style.opacity = "0"; lensSeen = false; });
   function lensLoop() {
     lensPos.x += (lensPos.tx - lensPos.x) * 0.16;
     lensPos.y += (lensPos.ty - lensPos.y) * 0.16;
     lensPos.s += (lensPos.ts - lensPos.s) * 0.12;
-    lens.style.transform = `translate(${lensPos.x - 46}px, ${lensPos.y - 46}px) scale(${lensPos.s.toFixed(3)})`;
+    lens.style.transform = `translate(${lensPos.x - 18}px, ${lensPos.y - 18}px) scale(${lensPos.s.toFixed(3)})`;
     requestAnimationFrame(lensLoop);
   }
 
@@ -492,6 +492,7 @@
     R.setProperty("--blob-bg",
       `linear-gradient(160deg, rgba(255,255,255,${Math.min(0.95, 0.95 * (g + 0.25)).toFixed(3)}), rgba(255,255,255,${(0.55 * (g + 0.25)).toFixed(3)}))`);
     R.setProperty("--spec", `rgba(255,255,255,${s.spec.toFixed(3)})`);
+    R.setProperty("--pop-bg", rgba([...s.bg, 0.75]));
 
     // сцена на фоне
     document.querySelector(".day").style.background =
@@ -508,6 +509,7 @@
     $("sunDot").style.left = `${50 + 41 * Math.cos(a)}%`;
     $("sunDot").style.bottom = `${-10 + 80 * Math.sin(a)}%`;
     $("sunDot").classList.toggle("moon", t > 0.85);
+    $("sunNavIcon").classList.toggle("moon", t > 0.85);
 
     // небо в карточке, звёзды, трава тускнеет к ночи
     $("sunSky").style.background =
@@ -531,6 +533,12 @@
     $("sunCaption").textContent = caps[idx];
   }
 
+  /* ---------- попап настройки света в навигации ---------- */
+  const sunNav = $("sunNav");
+  sunNav.addEventListener("pointerenter", () => sunNav.classList.add("open"));
+  sunNav.addEventListener("pointerleave", () => { if (!sunDrag) sunNav.classList.remove("open"); });
+  $("sunNavBtn").addEventListener("click", () => sunNav.classList.toggle("open"));
+
   const sunSky = $("sunSky");
   let sunDrag = false;
   function sunFromEvent(e) {
@@ -548,7 +556,10 @@
     sunFromEvent(e);
   });
   window.addEventListener("pointermove", (e) => { if (sunDrag) sunFromEvent(e); });
-  window.addEventListener("pointerup", () => { sunDrag = false; });
+  window.addEventListener("pointerup", () => {
+    if (sunDrag && !sunNav.matches(":hover")) sunNav.classList.remove("open");
+    sunDrag = false;
+  });
 
   /* ---------- canvas: пыльца в утреннем свете ---------- */
   const canvas = $("heroCanvas");
@@ -644,6 +655,10 @@
   );
 
   /* ---------- init ---------- */
+  // настоящее преломление стекла — только там, где движок его умеет (Chromium)
+  if (window.chrome && CSS.supports("backdrop-filter", "url(#lg-refract)")) {
+    document.documentElement.classList.add("refract");
+  }
   render();
   updateSunScene();
   resizeCanvas();
