@@ -1,5 +1,0 @@
-ollama
-uvicorn
-Django
-Pillow
-django-cors-headers

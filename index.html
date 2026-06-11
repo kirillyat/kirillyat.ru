@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кирилл Яценко — Software Engineer</title>
+  <meta name="description" content="Кирилл Яценко — software engineer. Бэкенд, инфраструктура, лекции и менторство.">
+  <meta property="og:title" content="Кирилл Яценко — Software Engineer">
+  <meta property="og:description" content="Бэкенд, инфраструктура, лекции и менторство.">
+  <meta property="og:url" content="https://kirillyat.ru">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>⚡</text></svg>">
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <header class="nav" id="nav">
+    <a class="nav__logo" href="#top">k<span class="accent">.</span>yat</a>
+    <nav class="nav__links" id="navLinks"></nav>
+    <div class="nav__actions">
+      <button class="lang-toggle" id="langToggle" aria-label="Switch language">EN</button>
+      <button class="term-hint" id="termHint" title="нажми ` для терминала">&gt;_</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <canvas id="heroCanvas" aria-hidden="true"></canvas>
+      <div class="hero__inner">
+        <p class="hero__hello mono" id="heroHello"></p>
+        <h1 class="hero__name" id="heroName"></h1>
+        <div class="hero__role mono">
+          <span class="accent">$</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+        </div>
+        <p class="hero__tagline" id="heroTagline"></p>
+        <div class="hero__cta">
+          <a href="#contact" class="btn btn--primary magnetic" id="ctaContact"></a>
+          <a href="#experience" class="btn btn--ghost magnetic" id="ctaCv"></a>
+        </div>
+      </div>
+      <a class="hero__scroll mono" href="#about" aria-label="scroll down">
+        <span id="scrollLabel"></span>
+        <span class="hero__scroll-line"></span>
+      </a>
+    </section>
+
+    <!-- ============ ABOUT / BENTO ============ -->
+    <section class="section" id="about">
+      <h2 class="section__title reveal"><span class="section__num mono">01</span><span id="aboutTitle"></span></h2>
+      <div class="bento" id="bentoGrid"></div>
+    </section>
+
+    <!-- ============ EXPERIENCE ============ -->
+    <section class="section" id="experience">
+      <h2 class="section__title reveal"><span class="section__num mono">02</span><span id="expTitle"></span></h2>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <!-- ============ SKILLS ============ -->
+    <section class="section" id="skills">
+      <h2 class="section__title reveal"><span class="section__num mono">03</span><span id="skillsTitle"></span></h2>
+      <div class="skills" id="skillsGrid"></div>
+    </section>
+
+    <!-- ============ TALKS ============ -->
+    <section class="section" id="talks">
+      <h2 class="section__title reveal"><span class="section__num mono">04</span><span id="talksTitle"></span></h2>
+      <div class="talks" id="talksList"></div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section section--contact" id="contact">
+      <h2 class="section__title reveal"><span class="section__num mono">05</span><span id="contactTitle"></span></h2>
+      <p class="contact__lead reveal" id="contactLead"></p>
+      <button class="contact__email reveal magnetic" id="emailBtn">
+        <span id="emailText"></span>
+        <span class="contact__copy mono" id="copyHint"></span>
+      </button>
+      <div class="contact__socials reveal" id="socials"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="mono" id="footerLeft"></span>
+    <span class="mono footer__hint" id="footerHint"></span>
+  </footer>
+
+  <!-- ============ TERMINAL EASTER EGG ============ -->
+  <div class="terminal" id="terminal" hidden>
+    <div class="terminal__window">
+      <div class="terminal__bar">
+        <span class="terminal__dot terminal__dot--r"></span>
+        <span class="terminal__dot terminal__dot--y"></span>
+        <span class="terminal__dot terminal__dot--g"></span>
+        <span class="mono terminal__title">kirillyat.ru — zsh</span>
+        <button class="terminal__close" id="termClose">✕</button>
+      </div>
+      <div class="terminal__body mono" id="termBody"></div>
+      <div class="terminal__input-row mono">
+        <span class="accent">guest@kirillyat.ru&nbsp;$</span>
+        <input type="text" id="termInput" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
