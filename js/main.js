@@ -266,19 +266,19 @@
       r: Math.random() * 1.8 + 0.8,
       phase: Math.random() * Math.PI * 2,
       speed: 0.4 + Math.random() * 0.7,
-      warm: Math.random() < 0.25, // часть светлячков — янтарные
+      warm: Math.random() < 0.25, // часть светлячков — сиреневые
     }));
     matrixCols = Array.from({ length: Math.ceil(canvas.offsetWidth / 18) }, () => Math.random() * -50);
   }
 
   function drawMatrix() {
     const w = canvas.offsetWidth, h = canvas.offsetHeight;
-    ctx.fillStyle = "rgba(7, 11, 9, 0.18)";
+    ctx.fillStyle = "rgba(5, 8, 15, 0.18)";
     ctx.fillRect(0, 0, w, h);
     ctx.font = "14px JetBrains Mono, monospace";
     matrixCols.forEach((y, i) => {
       const ch = MATRIX_GLYPHS[(Math.random() * MATRIX_GLYPHS.length) | 0];
-      ctx.fillStyle = Math.random() > 0.95 ? "#d8ffe9" : "rgba(139, 232, 192, 0.7)";
+      ctx.fillStyle = Math.random() > 0.95 ? "#dcefff" : "rgba(142, 197, 255, 0.7)";
       ctx.fillText(ch, i * 18, y * 18);
       matrixCols[i] = y * 18 > h && Math.random() > 0.97 ? 0 : y + 0.5;
     });
@@ -307,7 +307,7 @@
       if (f.y < -10) f.y = h + 10; if (f.y > h + 10) f.y = -10;
 
       const glow = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(t * f.speed * 1.6 + f.phase));
-      const color = f.warm ? "242, 204, 147" : "139, 232, 192";
+      const color = f.warm ? "165, 180, 252" : "142, 197, 255";
       const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 7);
       grad.addColorStop(0, `rgba(${color}, ${glow})`);
       grad.addColorStop(1, `rgba(${color}, 0)`);
