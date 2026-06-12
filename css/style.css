@@ -227,6 +227,10 @@ html.refract .nav__bar {
   transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
 }
 .lang-nav.open .lang-pop { opacity: 1; transform: none; pointer-events: auto; }
+.lang-nav.open::after {
+  content: ""; position: absolute;
+  top: 100%; height: 18px; left: -180px; right: -10px;
+}
 .lang-pop__item {
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 10px 12px;
@@ -360,6 +364,12 @@ html.refract .nav__bar {
 }
 .sun-nav.open .sun-pop {
   opacity: 1; transform: none; pointer-events: auto;
+}
+/* невидимый мостик через зазор между кнопкой и попапом,
+   чтобы курсор не «вываливался» по дороге */
+.sun-nav.open::after {
+  content: ""; position: absolute;
+  top: 100%; height: 18px; left: -320px; right: -10px;
 }
 @media (max-width: 700px) {
   .sun-pop {

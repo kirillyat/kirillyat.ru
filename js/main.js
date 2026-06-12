@@ -533,11 +533,34 @@
     $("sunCaption").textContent = caps[idx];
   }
 
-  /* ---------- попап настройки света в навигации ---------- */
+  /* ---------- попапы в навигации: открытие по hover,
+     закрытие с льготной задержкой, чтобы курсор успел дойти ---------- */
+  function bindNavPop(root, btn, keepOpen) {
+    let closeTimer;
+    root.addEventListener("pointerenter", () => {
+      clearTimeout(closeTimer);
+      root.classList.add("open");
+    });
+    root.addEventListener("pointerleave", () => {
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => {
+        if (!keepOpen || !keepOpen()) root.classList.remove("open");
+      }, 260);
+    });
+    // клик/тап по кнопке только открывает (hover уже мог открыть —
+    // toggle закрывал бы прямо под пальцем); закрытие — уход курсора
+    // или тап в любом месте вне попапа
+    btn.addEventListener("click", () => {
+      clearTimeout(closeTimer);
+      root.classList.add("open");
+    });
+    document.addEventListener("pointerdown", (e) => {
+      if (!root.contains(e.target)) root.classList.remove("open");
+    });
+  }
+
   const sunNav = $("sunNav");
-  sunNav.addEventListener("pointerenter", () => sunNav.classList.add("open"));
-  sunNav.addEventListener("pointerleave", () => { if (!sunDrag) sunNav.classList.remove("open"); });
-  $("sunNavBtn").addEventListener("click", () => sunNav.classList.toggle("open"));
+  bindNavPop(sunNav, $("sunNavBtn"), () => sunDrag);
 
   const sunSky = $("sunSky");
   let sunDrag = false;
@@ -661,9 +684,7 @@
     render();
   }
   const langNav = $("langNav");
-  langNav.addEventListener("pointerenter", () => langNav.classList.add("open"));
-  langNav.addEventListener("pointerleave", () => langNav.classList.remove("open"));
-  $("langNavBtn").addEventListener("click", () => langNav.classList.toggle("open"));
+  bindNavPop(langNav, $("langNavBtn"));
 
   /* ---------- init ---------- */
   // настоящее преломление стекла — только там, где движок его умеет (Chromium)
