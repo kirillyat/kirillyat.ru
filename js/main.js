@@ -490,7 +490,7 @@
     R.setProperty("--ghost-fill", rgba(s.ghostF));
     R.setProperty("--ghost-stroke", rgba(s.ghostS));
     R.setProperty("--blob-bg",
-      `linear-gradient(160deg, rgba(255,255,255,${Math.min(0.95, 0.95 * (g + 0.25)).toFixed(3)}), rgba(255,255,255,${(0.55 * (g + 0.25)).toFixed(3)}))`);
+      `linear-gradient(160deg, rgba(255,255,255,${Math.min(0.55, 0.55 * (g + 0.25)).toFixed(3)}), rgba(255,255,255,${(0.3 * (g + 0.25)).toFixed(3)}))`);
     R.setProperty("--spec", `rgba(255,255,255,${s.spec.toFixed(3)})`);
     R.setProperty("--pop-bg", rgba([...s.bg, 0.92]));
 
