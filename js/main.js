@@ -334,14 +334,14 @@
   function blobLoop() {
     const blob = $("navBlob");
     if (blob && blobState.on) {
-      // пружина: бегунок перетекает с лёгким перехлёстом, как жидкость
-      const k = 0.16, d = 0.72;
+      // пружина: бегунок перетекает мягко, почти без перехлёста
+      const k = 0.07, d = 0.84;
       blobState.vx = (blobState.vx + (blobState.tx - blobState.x) * k) * d;
       blobState.vw = (blobState.vw + (blobState.tw - blobState.w) * k) * d;
       blobState.x += blobState.vx;
       blobState.w += blobState.vw;
-      // от скорости — лёгкое «растяжение» капли
-      const squish = Math.min(Math.abs(blobState.vx) * 0.012, 0.18);
+      // от скорости — едва заметное «растяжение» капли
+      const squish = Math.min(Math.abs(blobState.vx) * 0.005, 0.08);
       blob.style.transform = `translateX(${blobState.x}px) scaleY(${1 - squish})`;
       blob.style.width = `${blobState.w}px`;
     }
@@ -681,6 +681,23 @@
   });
   canvas.addEventListener("pointerleave", () => { mouse.x = -9999; mouse.y = -9999; });
   window.addEventListener("resize", resizeCanvas);
+
+  /* ---------- фото в hero: кроссфейд-ротация ---------- */
+  const photoCard = $("photoCard");
+  if (photoCard) {
+    const photos = [...photoCard.querySelectorAll(".photo-card__img")];
+    let photoI = 0;
+    let photoPaused = false;
+    photoCard.addEventListener("pointerenter", () => { photoPaused = true; });
+    photoCard.addEventListener("pointerleave", () => { photoPaused = false; });
+    if (photos.length > 1) {
+      setInterval(() => {
+        if (photoPaused) return;
+        photoI = (photoI + 1) % photos.length;
+        photos.forEach((im, i) => im.classList.toggle("active", i === photoI));
+      }, 6500);
+    }
+  }
 
   /* ---------- copy email ---------- */
   $("emailBtn").addEventListener("click", async () => {

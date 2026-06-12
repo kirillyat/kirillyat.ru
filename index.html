@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <!-- ?v= — защита от рассинхрона кэша CDN: при правках бампни число
        во всех трёх ссылках (style.css, data.js, main.js) -->
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>☀️</text></svg>">
 </head>
 <body>
@@ -86,14 +86,24 @@
         <p class="hero__hello mono" id="heroHello"></p>
         <h1 class="hero__name" id="heroName" data-plx="-0.1"></h1>
         <div class="hero__below">
-          <div class="hero__role mono">
-            <span class="accent">▸</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+          <div class="hero__left">
+            <div class="hero__role mono">
+              <span class="accent">▸</span>&nbsp;<span id="typewriter"></span><span class="caret">▍</span>
+            </div>
+            <p class="hero__tagline" id="heroTagline"></p>
+            <div class="hero__cta">
+              <a href="#mentoring" class="btn btn--primary" id="ctaMentor"></a>
+              <a href="#contact" class="btn btn--ghost" id="ctaContact"></a>
+            </div>
           </div>
-          <p class="hero__tagline" id="heroTagline"></p>
-          <div class="hero__cta">
-            <a href="#mentoring" class="btn btn--primary" id="ctaMentor"></a>
-            <a href="#contact" class="btn btn--ghost" id="ctaContact"></a>
-          </div>
+
+          <!-- фото в стеклянной рамке; кадры ротируются кроссфейдом.
+               новые фото: клади в assets/ и добавляй <img> сюда -->
+          <figure class="photo-card tilt" id="photoCard">
+            <img class="photo-card__img active" src="assets/photo-1.jpg" alt="Кирилл Яценко">
+            <img class="photo-card__img" src="assets/photo-2.jpg" alt="Кирилл Яценко читает лекцию" style="object-position: 38% center">
+            <span class="photo-card__glare" aria-hidden="true"></span>
+          </figure>
         </div>
       </div>
       <a class="hero__scroll mono" href="#about" aria-label="scroll down">
@@ -186,7 +196,7 @@
     <span class="mono footer__hint" id="footerHint"></span>
   </footer>
 
-  <script src="js/data.js?v=3"></script>
-  <script src="js/main.js?v=3"></script>
+  <script src="js/data.js?v=4"></script>
+  <script src="js/main.js?v=4"></script>
 </body>
 </html>
