@@ -5,7 +5,12 @@
   const $ = (id) => document.getElementById(id);
   const LANGS = ["ru", "en", "fr"];
   let lang = localStorage.getItem("lang");
-  if (!LANGS.includes(lang)) lang = "ru";
+  if (!LANGS.includes(lang)) {
+    // первый визит: берём язык из настроек браузера посетителя
+    const preferred = (navigator.languages || [navigator.language || "en"])
+      .map((s) => s.slice(0, 2).toLowerCase());
+    lang = preferred.find((l) => LANGS.includes(l)) || "en";
+  }
   let typeTimer = null;
   const lerp = (a, b, t) => a + (b - a) * t;
   const mix = (c1, c2, t) => c1.map((v, i) => Math.round(lerp(v, c2[i], t)));
@@ -359,6 +364,10 @@
   let dayAuto = localStorage.getItem("dayAuto") !== "0";
   let dayT = parseFloat(localStorage.getItem("dayT"));
   if (dayAuto || isNaN(dayT)) dayT = tFromNow();
+  // в авторежиме свет живёт вместе с часами посетителя
+  setInterval(() => {
+    if (dayAuto && Math.abs(tFromNow() - dayT) > 0.005) tweenDay(tFromNow());
+  }, 60000);
 
   let sunTweenId = null;
   function tweenDay(target) {
