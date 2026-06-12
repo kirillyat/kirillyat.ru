@@ -504,10 +504,12 @@
     $("sunBlob").style.left = `${lerp(-4, 38, t)}vmax`;
     $("sunBlob").style.top = `${t < 0.55 ? lerp(6, -22, t / 0.55) : lerp(-22, 10, (t - 0.55) / 0.45)}vmax`;
 
-    // солнце в карточке: полная дуга — восход слева, зенит, закат справа
+    // солнце в карточке: строго по нарисованной дуге.
+    // .sun-card__arc — эллипс: центр x=50%, y=-0.5% от низа,
+    // полуоси 40% ширины и 87.5% высоты неба
     const a = ((170 - t * 160) * Math.PI) / 180;
-    $("sunDot").style.left = `${50 + 41 * Math.cos(a)}%`;
-    $("sunDot").style.bottom = `${-10 + 80 * Math.sin(a)}%`;
+    $("sunDot").style.left = `${50 + 40 * Math.cos(a)}%`;
+    $("sunDot").style.bottom = `${-0.5 + 87.5 * Math.sin(a)}%`;
     $("sunDot").classList.toggle("moon", t > 0.85);
     $("sunNavIcon").classList.toggle("moon", t > 0.85);
 
@@ -534,41 +536,65 @@
   }
 
   /* ---------- попапы в навигации: открытие по hover,
-     закрытие с льготной задержкой, чтобы курсор успел дойти ---------- */
-  function bindNavPop(root, btn, keepOpen) {
+     закрытие с льготной задержкой, чтобы курсор успел дойти.
+     попап живёт в body и позиционируется от вьюпорта (fixed внутри
+     стеклянного навбара не работает из-за backdrop-filter) ---------- */
+  function placePop(pop, btn) {
+    const bar = document.querySelector(".nav__bar").getBoundingClientRect();
+    pop.style.top = `${bar.bottom + 10}px`;
+    if (innerWidth <= 700) {
+      pop.style.left = "16px";
+      pop.style.right = "16px";
+    } else {
+      pop.style.left = "auto";
+      pop.style.right = `${Math.max(16, innerWidth - btn.getBoundingClientRect().right - 8)}px`;
+    }
+  }
+  const openPops = [];
+  function bindNavPop(root, btn, pop, keepOpen) {
     let closeTimer;
-    root.addEventListener("pointerenter", () => {
-      clearTimeout(closeTimer);
-      root.classList.add("open");
-    });
-    root.addEventListener("pointerleave", () => {
-      clearTimeout(closeTimer);
-      closeTimer = setTimeout(() => {
-        if (!keepOpen || !keepOpen()) root.classList.remove("open");
-      }, 260);
+    const setOpen = (v) => {
+      if (v) placePop(pop, btn);
+      root.classList.toggle("open", v);
+      pop.classList.toggle("open", v);
+    };
+    openPops.push(() => { if (pop.classList.contains("open")) placePop(pop, btn); });
+    [root, pop].forEach((el) => {
+      el.addEventListener("pointerenter", () => {
+        clearTimeout(closeTimer);
+        setOpen(true);
+      });
+      el.addEventListener("pointerleave", () => {
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => {
+          if (!keepOpen || !keepOpen()) setOpen(false);
+        }, 260);
+      });
     });
     // клик/тап по кнопке только открывает (hover уже мог открыть —
     // toggle закрывал бы прямо под пальцем); закрытие — уход курсора
     // или тап в любом месте вне попапа
     btn.addEventListener("click", () => {
       clearTimeout(closeTimer);
-      root.classList.add("open");
+      setOpen(true);
     });
     document.addEventListener("pointerdown", (e) => {
-      if (!root.contains(e.target)) root.classList.remove("open");
+      if (!root.contains(e.target) && !pop.contains(e.target)) setOpen(false);
     });
   }
+  window.addEventListener("resize", () => openPops.forEach((f) => f()));
 
   const sunNav = $("sunNav");
-  bindNavPop(sunNav, $("sunNavBtn"), () => sunDrag);
+  bindNavPop(sunNav, $("sunNavBtn"), $("sunCard"), () => sunDrag);
 
   const sunSky = $("sunSky");
   let sunDrag = false;
   function sunFromEvent(e) {
+    const r = sunSky.getBoundingClientRect();
+    if (!r.width) return; // на узких экранах небо скрыто — управление пресетами
     cancelAnimationFrame(sunTweenId);
     dayAuto = false;
     localStorage.setItem("dayAuto", "0");
-    const r = sunSky.getBoundingClientRect();
     dayT = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
     localStorage.setItem("dayT", dayT.toFixed(3));
     updateSunScene();
@@ -674,6 +700,7 @@
       b.addEventListener("click", () => {
         setLang(b.dataset.lang);
         $("langNav").classList.remove("open");
+        $("langPop").classList.remove("open");
       })
     );
   }
@@ -684,7 +711,7 @@
     render();
   }
   const langNav = $("langNav");
-  bindNavPop(langNav, $("langNavBtn"));
+  bindNavPop(langNav, $("langNavBtn"), $("langPop"));
 
   /* ---------- init ---------- */
   // настоящее преломление стекла — только там, где движок его умеет (Chromium)

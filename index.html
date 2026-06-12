@@ -49,29 +49,32 @@
         <button class="sun-nav__btn" id="sunNavBtn" aria-haspopup="true" aria-label="Daylight settings">
           <span class="sun-nav__icon" id="sunNavIcon"></span>
         </button>
-        <div class="sun-pop sun-card" id="sunCard">
-          <p class="sun-card__title mono" id="sunTitle"></p>
-          <div class="sun-card__sky" id="sunSky">
-            <div class="sun-card__stars" id="sunStars"></div>
-            <div class="sun-card__arc"></div>
-            <div class="sun-card__sun" id="sunDot"></div>
-            <div class="sun-card__horizon" id="sunHorizon"></div>
-          </div>
-          <div class="sun-card__meta">
-            <span class="sun-card__time mono" id="sunTime">06:30</span>
-            <span class="sun-card__caption" id="sunCaption"></span>
-          </div>
-          <div class="sun-card__presets" id="sunPresets"></div>
-          <p class="sun-card__hint mono" id="sunHint"></p>
-        </div>
       </div>
       <!-- выбор языка: всплывает при наведении -->
       <div class="lang-nav" id="langNav">
         <button class="lang-nav__btn" id="langNavBtn" aria-haspopup="true" aria-label="Language"></button>
-        <div class="lang-pop" id="langPop"></div>
       </div>
     </div>
   </header>
+
+  <!-- попапы вынесены из навбара: backdrop-filter родителя ломает
+       position:fixed, поэтому позиционируются JS-ом от вьюпорта -->
+  <div class="sun-pop sun-card" id="sunCard">
+    <p class="sun-card__title mono" id="sunTitle"></p>
+    <div class="sun-card__sky" id="sunSky">
+      <div class="sun-card__stars" id="sunStars"></div>
+      <div class="sun-card__arc"></div>
+      <div class="sun-card__sun" id="sunDot"></div>
+      <div class="sun-card__horizon" id="sunHorizon"></div>
+    </div>
+    <div class="sun-card__meta">
+      <span class="sun-card__time mono" id="sunTime">06:30</span>
+      <span class="sun-card__caption" id="sunCaption"></span>
+    </div>
+    <div class="sun-card__presets" id="sunPresets"></div>
+    <p class="sun-card__hint mono" id="sunHint"></p>
+  </div>
+  <div class="lang-pop" id="langPop"></div>
 
   <main id="top">
     <!-- ============ HERO ============ -->
