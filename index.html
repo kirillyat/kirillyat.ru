@@ -65,11 +65,10 @@
           <p class="sun-card__hint mono" id="sunHint"></p>
         </div>
       </div>
-      <div class="lang-switch" id="langSwitch" role="tablist" aria-label="Language">
-        <span class="lang-switch__thumb" id="langThumb"></span>
-        <button data-lang="ru" role="tab">RU</button>
-        <button data-lang="en" role="tab">EN</button>
-        <button data-lang="fr" role="tab">FR</button>
+      <!-- выбор языка: всплывает при наведении -->
+      <div class="lang-nav" id="langNav">
+        <button class="lang-nav__btn" id="langNavBtn" aria-haspopup="true" aria-label="Language"></button>
+        <div class="lang-pop" id="langPop"></div>
       </div>
     </div>
   </header>

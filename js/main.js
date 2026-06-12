@@ -492,7 +492,7 @@
     R.setProperty("--blob-bg",
       `linear-gradient(160deg, rgba(255,255,255,${Math.min(0.95, 0.95 * (g + 0.25)).toFixed(3)}), rgba(255,255,255,${(0.55 * (g + 0.25)).toFixed(3)}))`);
     R.setProperty("--spec", `rgba(255,255,255,${s.spec.toFixed(3)})`);
-    R.setProperty("--pop-bg", rgba([...s.bg, 0.75]));
+    R.setProperty("--pop-bg", rgba([...s.bg, 0.92]));
 
     // сцена на фоне
     document.querySelector(".day").style.background =
@@ -636,12 +636,22 @@
     }
   });
 
-  /* ---------- переключатель языков (свитч) ---------- */
+  /* ---------- переключатель языков: кнопка-флаг + попап ---------- */
+  const FLAGS = { ru: "🇷🇺", en: "🇬🇧", fr: "🇫🇷" };
+  const LANG_NAMES = { ru: "Русский", en: "English", fr: "Français" };
   function updateLangSwitch() {
-    const idx = LANGS.indexOf(lang);
-    $("langThumb").style.transform = `translateX(${idx * 44}px)`;
-    $("langSwitch").querySelectorAll("button").forEach((b) =>
-      b.classList.toggle("active", b.dataset.lang === lang)
+    $("langNavBtn").textContent = FLAGS[lang];
+    $("langPop").innerHTML = LANGS.map(
+      (l) =>
+        `<button class="lang-pop__item${l === lang ? " active" : ""}" data-lang="${l}">
+          <span>${FLAGS[l]}</span>${LANG_NAMES[l]}
+        </button>`
+    ).join("");
+    $("langPop").querySelectorAll("button").forEach((b) =>
+      b.addEventListener("click", () => {
+        setLang(b.dataset.lang);
+        $("langNav").classList.remove("open");
+      })
     );
   }
   function setLang(l) {
@@ -650,9 +660,10 @@
     localStorage.setItem("lang", lang);
     render();
   }
-  $("langSwitch").querySelectorAll("button").forEach((b) =>
-    b.addEventListener("click", () => setLang(b.dataset.lang))
-  );
+  const langNav = $("langNav");
+  langNav.addEventListener("pointerenter", () => langNav.classList.add("open"));
+  langNav.addEventListener("pointerleave", () => langNav.classList.remove("open"));
+  $("langNavBtn").addEventListener("click", () => langNav.classList.toggle("open"));
 
   /* ---------- init ---------- */
   // настоящее преломление стекла — только там, где движок его умеет (Chromium)
